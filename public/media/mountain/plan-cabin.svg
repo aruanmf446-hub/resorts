@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" font-family="Helvetica, Arial, sans-serif">
+<rect width="1200" height="800" fill="#ebe8e2"/>
+<g fill="none" stroke="#161c1b" stroke-width="3">
+<rect x="180" y="160" width="620" height="300"/>
+<line x1="470" y1="160" x2="470" y2="360"/>
+<rect x="180" y="460" width="840" height="200" stroke-dasharray="10 8"/>
+<rect x="760" y="510" width="220" height="110"/>
+<rect x="220" y="200" width="180" height="200"/>
+<rect x="540" y="200" width="200" height="80"/>
+<circle cx="900" cy="300" r="70" stroke-dasharray="4 6"/>
+</g>
+<g fill="#161c1b" font-size="18" letter-spacing="3">
+<text x="250" y="430">QUARTO</text><text x="560" y="430">ESTAR</text><text x="200" y="690">DECK</text><text x="780" y="645">BANHEIRA</text>
+<text x="180" y="110" font-size="22" letter-spacing="6">CABANA DA CRISTA — PLANTA ILUSTRATIVA</text>
+<text x="180" y="760" font-size="14" letter-spacing="2" opacity=".7">Desenho demonstrativo, sem escala. Não é documento técnico.</text>
+</g>
+<g stroke="#161c1b" stroke-width="2"><line x1="1080" y1="120" x2="1080" y2="200"/><path d="M1070 140 L1080 120 L1090 140" fill="none"/></g>
+<text x="1072" y="225" fill="#161c1b" font-size="16">N</text>
+</svg>

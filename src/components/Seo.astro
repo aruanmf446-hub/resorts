@@ -1,0 +1,48 @@
+---
+import { site } from '../lib/context';
+interface Props { title?: string; description?: string; image?: string; jsonLd?: Record<string, unknown>[]; noindex?: boolean }
+const { title, description, image, jsonLd = [], noindex } = Astro.props;
+const s = site.seo;
+const fullTitle = title ? s.titleTemplate.replace('%s', title) : s.defaultTitle;
+const desc = description ?? site.identity.description;
+const canonical = new URL(Astro.url.pathname, s.siteUrl).toString();
+const og = new URL(image ?? s.ogImage, s.siteUrl).toString();
+const loc = site.identity.location;
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'Resort',
+  name: site.identity.name,
+  description: site.identity.description,
+  url: s.siteUrl,
+  image: new URL(s.ogImage, s.siteUrl).toString(),
+  ...(site.contacts.email && { email: site.contacts.email }),
+  ...(site.contacts.phone && { telephone: site.contacts.phone }),
+  ...(s.priceRange && { priceRange: s.priceRange }),
+  address: { '@type': 'PostalAddress', streetAddress: loc.address, addressLocality: loc.locality, addressRegion: loc.region, postalCode: loc.postalCode, addressCountry: loc.country },
+  ...(loc.coordinates && { geo: { '@type': 'GeoCoordinates', latitude: loc.coordinates.lat, longitude: loc.coordinates.lng } }),
+  sameAs: site.contacts.social.map((x) => x.href),
+};
+const schemas = [...(Astro.url.pathname === '/' ? [org] : []), ...jsonLd];
+const robots = noindex || s.robots === 'noindex' ? 'noindex,nofollow' : 'index,follow';
+---
+<title>{fullTitle}</title>
+<meta name="description" content={desc} />
+<meta name="robots" content={robots} />
+<link rel="canonical" href={canonical} />
+<link rel="icon" href={site.identity.favicon} type="image/svg+xml" />
+<link rel="sitemap" href="/sitemap-index.xml" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={site.identity.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={desc} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={og} />
+<meta property="og:locale" content={site.locale.replace('-', '_')} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={desc} />
+<meta name="twitter:image" content={og} />
+{s.keywords.length > 0 && <meta name="keywords" content={s.keywords.join(', ')} />}
+{site.integrations.searchConsoleVerification && <meta name="google-site-verification" content={site.integrations.searchConsoleVerification} />}
+{site.alternates.map((a) => <link rel="alternate" hreflang={a.locale} href={a.href} />)}
+{schemas.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j)} />)}

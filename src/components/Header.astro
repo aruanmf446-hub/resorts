@@ -1,0 +1,108 @@
+---
+import { site, t, navItems, bookingEnabled, bookingHref } from '../lib/context';
+import Sound from './Sound.astro';
+interface Props { pageId?: string }
+const { pageId } = Astro.props;
+const items = navItems('primary').slice(0, 5);
+const style = site.theme.nav.style;
+const half = Math.ceil(items.length / 2);
+const reserve = bookingEnabled ? bookingHref : null;
+---
+<header class="hdr" data-header>
+  <div class="hdr__bar wrap">
+    {style === 'split' && (
+      <nav class="hdr__links hdr__links--left" aria-label="Primary">
+        {items.slice(0, half).map((i) => <a class="hdr__link" href={i.href} aria-current={i.id === pageId ? 'page' : undefined}>{i.label}</a>)}
+      </nav>
+    )}
+    <a class="hdr__brand" href="/" aria-label={`${site.identity.name} — ${t('home')}`}>
+      {site.identity.logo ? <img src={site.identity.logo.src} alt={site.identity.logo.alt} height="28" /> : <span class="hdr__wordmark">{site.identity.wordmark}</span>}
+    </a>
+    {style !== 'split' && (
+      <nav class="hdr__links" aria-label="Primary">
+        {items.map((i) => <a class="hdr__link" href={i.href} aria-current={i.id === pageId ? 'page' : undefined}>{i.label}</a>)}
+      </nav>
+    )}
+    {style === 'split' && (
+      <nav class="hdr__links hdr__links--right" aria-label="Primary (continued)">
+        {items.slice(half).map((i) => <a class="hdr__link" href={i.href} aria-current={i.id === pageId ? 'page' : undefined}>{i.label}</a>)}
+      </nav>
+    )}
+    <div class="hdr__actions">
+      {site.sound?.enabled && <Sound />}
+      <button class="hdr__menu" type="button" data-menu-open aria-controls="site-menu" aria-expanded="false">
+        <span class="hdr__menu-icon" aria-hidden="true"><i></i><i></i></span>
+        <span class="hdr__menu-label">{t('menu')}</span>
+      </button>
+      {reserve && <a class="hdr__book" href={reserve} data-book-open>{site.booking.label}</a>}
+    </div>
+  </div>
+</header>
+
+<div class="dock" aria-label="Quick actions">
+  <button type="button" class="dock__btn" data-menu-open aria-controls="site-menu" aria-expanded="false">{t('menu')}</button>
+  {reserve && <a class="dock__btn dock__btn--book" href={reserve} data-book-open>{site.booking.label}</a>}
+</div>
+
+<style>
+  .hdr {
+    position: fixed; inset: 0 0 auto 0; z-index: 900;
+    color: var(--c-ink);
+    transition: transform 0.7s var(--ease-out), color 0.5s, background-color 0.5s;
+    pointer-events: none;
+  }
+  .hdr__bar { display: flex; align-items: center; gap: 28px; height: var(--header-h); pointer-events: auto; }
+  :global(html[data-overlay='true']) .hdr:not(.is-solid) { color: #fbf8f2; }
+  .hdr.is-solid { background: rgb(var(--rgb-bg) / 0.86); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px); }
+  :global(html[data-nav='framed']) .hdr.is-solid { border-bottom: 1px solid var(--c-line); }
+  :global(html[data-nav='framed']) .hdr__bar { border-bottom: 1px solid currentColor; border-bottom-color: rgb(255 255 255 / 0.22); }
+  :global(html[data-nav='framed']) .hdr.is-solid .hdr__bar { border-bottom-color: transparent; }
+  .hdr.is-hidden { transform: translateY(-100%); }
+  .hdr__brand { display: inline-flex; align-items: center; }
+  .hdr__wordmark { font-family: var(--f-display); font-variation-settings: var(--fv-display); font-size: 1.32rem; letter-spacing: 0.32em; font-weight: 500; }
+  :global(html[data-art='wellness']) .hdr__wordmark { letter-spacing: 0.08em; font-size: 1.7rem; font-style: italic; }
+  .hdr__links { display: flex; gap: clamp(18px, 2.4vw, 40px); margin-left: auto; }
+  :global(html[data-nav='split']) .hdr__bar { display: grid; grid-template-columns: 1fr auto 1fr; }
+  :global(html[data-nav='split']) .hdr__links--left { margin: 0; }
+  :global(html[data-nav='split']) .hdr__links--right { margin: 0; justify-content: flex-end; }
+  :global(html[data-nav='split']) .hdr__actions { grid-column: 3; grid-row: 1; justify-self: end; }
+  :global(html[data-nav='split']) .hdr__links--right { display: none; }
+  .hdr__link { font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500; position: relative; padding: 6px 0; }
+  .hdr__link::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform 0.6s var(--ease-out); }
+  .hdr__link:hover::after, .hdr__link[aria-current='page']::after { transform: scaleX(1); transform-origin: left; }
+  .hdr__actions { display: flex; align-items: center; gap: 22px; }
+  :global(html:not([data-nav='split'])) .hdr__actions { margin-left: 8px; }
+  .hdr__menu { display: inline-flex; align-items: center; gap: 12px; font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; min-height: 44px; }
+  .hdr__menu-icon { display: grid; gap: 6px; width: 26px; }
+  .hdr__menu-icon i { height: 1px; background: currentColor; transition: transform 0.6s var(--ease-out); }
+  .hdr__menu-icon i:last-child { width: 62%; justify-self: end; }
+  .hdr__menu:hover .hdr__menu-icon i:last-child { transform: scaleX(1.6); transform-origin: right; }
+  .hdr__book {
+    font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600;
+    padding: 14px 22px; border: 1px solid currentColor; border-radius: var(--radius); min-height: 44px; display: inline-flex; align-items: center;
+    transition: background-color 0.5s var(--ease-out), color 0.5s var(--ease-out), border-color 0.5s;
+  }
+  .hdr__book:hover { background: var(--c-accent); border-color: var(--c-accent); color: var(--c-accent-ink); }
+  :global(html[data-buttons='solid']) .hdr__book { background: var(--c-accent); color: var(--c-accent-ink); border-color: var(--c-accent); }
+
+  .dock { display: none; }
+  @media (max-width: 960px) {
+    .hdr__links { display: none !important; }
+    :global(html[data-nav='split']) .hdr__bar { grid-template-columns: 1fr auto; }
+    :global(html[data-nav='split']) .hdr__brand { grid-column: 1; justify-self: start; }
+    :global(html[data-nav='split']) .hdr__actions { grid-column: 2; }
+  }
+  @media (max-width: 760px) {
+    .hdr__bar { height: 68px; justify-content: space-between; }
+    .hdr__menu, .hdr__book { display: none; }
+    .dock {
+      display: flex; position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 901;
+      background: rgb(var(--rgb-dark) / 0.88); color: var(--c-dark-ink); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-radius: 999px; padding: 6px; gap: 4px; box-shadow: 0 18px 40px rgb(0 0 0 / 0.25);
+      transition: transform 0.6s var(--ease-out), opacity 0.4s;
+    }
+    .dock__btn { min-height: 46px; padding: 0 24px; font-size: var(--fs-micro); letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; border-radius: 999px; display: inline-flex; align-items: center; }
+    .dock__btn--book { background: var(--c-accent); color: var(--c-accent-ink); }
+    :global(html.menu-open) .dock { opacity: 0; pointer-events: none; }
+  }
+</style>

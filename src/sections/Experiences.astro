@@ -1,0 +1,128 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { site, t, link, categoryLabel } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+import Btn from '../components/Btn.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; categories?: string[]; limit?: number; cta?: { label: string; href: string } };
+let list = site.experiences.filter((e) => !c.categories || c.categories.includes(e.category));
+if (c.limit) list = list.slice(0, c.limit);
+const cats = site.experienceCategories.filter((cat) => list.some((e) => e.category === cat.id));
+const explorer = section.variant !== 'index';
+const meta = (e: (typeof list)[number]) => [e.duration, e.ages].filter(Boolean).join(' · ');
+---
+{list.length > 0 && (explorer ? (
+  <Section section={section} defaultTheme="light">
+    <div class="wrap xp" data-xp>
+      <div class="xp__head">
+        <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="xl" />
+        {cats.length > 1 && (
+          <div class="xp__cats" role="group" aria-label={t('all')}>
+            <button type="button" data-cat="" aria-pressed="true">{t('all')}</button>
+            {cats.map((cat) => <button type="button" data-cat={cat.id} aria-pressed="false">{cat.label}</button>)}
+          </div>
+        )}
+      </div>
+      <div class="xp__body">
+        <ol class="xp__list" role="list">
+          {list.map((e, i) => (
+            <li data-cat={e.category}>
+              <a class="xp__item" href={link.experience(e.slug) ?? '#'} data-xp-item={i}>
+                <span class="xp__n micro">{String(i + 1).padStart(2, '0')}</span>
+                <span class="xp__title t-m">{e.title}</span>
+                <span class="xp__meta micro muted">{categoryLabel(e.category)}{meta(e) && ` · ${meta(e)}`}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+        <div class="xp__stage" aria-hidden="true">
+          {list.map((e, i) => (
+            <figure class:list={['xp__slide', i === 0 && 'is-active']} data-xp-slide={i}>
+              <div class="media xp__media"><Img image={{ ...e.cover, alt: '' }} sizes="(max-width: 900px) 100vw, 55vw" /></div>
+              <figcaption class="xp__cap"><span class="lede">{e.summary}</span>{e.availability && <span class="micro muted">{e.availability}</span>}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+      {c.cta && <Btn href={c.cta.href} label={c.cta.label} />}
+    </div>
+  </Section>
+) : (
+  <Section section={section}>
+    <div class="wrap xi">
+      <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="l" />
+      {cats.map((cat) => (
+        <section class="xi__group" aria-labelledby={`cat-${cat.id}`}>
+          <header class="xi__ghead"><h3 class="t-m" id={`cat-${cat.id}`}>{cat.label}</h3>{cat.description && <p class="muted">{cat.description}</p>}</header>
+          <div class="xi__cards">
+            {list.filter((e) => e.category === cat.id).map((e) => (
+              <a class="xi__card" href={link.experience(e.slug) ?? '#'} data-reveal="rise">
+                <span class="media xi__media"><Img image={e.cover} sizes="(max-width: 900px) 100vw, 33vw" /></span>
+                <span class="t-s">{e.title}</span>
+                <span class="small muted">{e.summary}</span>
+                {meta(e) && <span class="micro">{meta(e)}</span>}
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </Section>
+))}
+<script>
+  document.querySelectorAll<HTMLElement>('[data-xp]').forEach((root) => {
+    const slides = root.querySelectorAll<HTMLElement>('[data-xp-slide]');
+    const show = (i: string) => slides.forEach((s) => s.classList.toggle('is-active', s.dataset.xpSlide === i));
+    root.querySelectorAll<HTMLElement>('[data-xp-item]').forEach((a) => {
+      a.addEventListener('mouseenter', () => show(a.dataset.xpItem!));
+      a.addEventListener('focus', () => show(a.dataset.xpItem!));
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-cat]').forEach((b) => b.addEventListener('click', () => {
+      root.querySelectorAll('[data-cat]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      let first: string | null = null;
+      root.querySelectorAll<HTMLElement>('.xp__list li').forEach((li) => {
+        const hide = !!b.dataset.cat && li.dataset.cat !== b.dataset.cat;
+        li.hidden = hide;
+        if (!hide && first === null) first = li.querySelector<HTMLElement>('[data-xp-item]')!.dataset.xpItem!;
+      });
+      if (first !== null) show(first);
+    }));
+  });
+</script>
+<style>
+  .xp { display: grid; gap: clamp(40px, 6vw, 88px); }
+  .xp__head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 32px; }
+  .xp__cats { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+  .xp__cats button { font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; padding: 8px 0; position: relative; color: var(--c-ink-soft); min-height: 40px; }
+  .xp__cats button::after { content: ''; position: absolute; left: 0; right: 0; bottom: 4px; height: 1px; background: currentColor; transform: scaleX(0); transition: transform 0.5s var(--ease-out); transform-origin: left; }
+  .xp__cats button[aria-pressed='true'] { color: var(--c-ink); }
+  .xp__cats button[aria-pressed='true']::after { transform: scaleX(1); }
+  .xp__body { display: grid; grid-template-columns: 5fr 7fr; gap: clamp(24px, 5vw, 96px); align-items: start; }
+  .xp__list { border-top: 1px solid var(--c-line); }
+  .xp__list li[hidden] { display: none; }
+  .xp__item { display: grid; grid-template-columns: 2.6rem 1fr; padding: 22px 0; border-bottom: 1px solid var(--c-line); row-gap: 6px; transition: padding 0.6s var(--ease-out), color 0.4s; color: var(--c-ink-soft); }
+  .xp__item:hover, .xp__item:focus-visible { color: var(--c-ink); padding-left: 14px; }
+  .xp__n { grid-row: span 2; padding-top: 0.6em; }
+  .xp__stage { position: sticky; top: calc(var(--header-h) + 20px); aspect-ratio: 5 / 4; }
+  .xp__slide { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity 0.9s var(--ease-calm); display: grid; grid-template-rows: 1fr auto; gap: 16px; }
+  .xp__slide.is-active { opacity: 1; }
+  .xp__media { height: 100%; clip-path: inset(6% 4% 6% 4%); transition: clip-path 1.2s var(--ease-out); }
+  .xp__slide.is-active .xp__media { clip-path: inset(0 0 0 0); }
+  .xp__cap { display: flex; justify-content: space-between; gap: 20px; align-items: baseline; }
+  .xi { display: grid; gap: clamp(56px, 8vw, 120px); }
+  .xi__group { display: grid; gap: 32px; }
+  .xi__ghead { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; border-bottom: 1px solid var(--c-line); padding-bottom: 18px; flex-wrap: wrap; }
+  .xi__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 48px 32px; }
+  .xi__card { display: grid; gap: 10px; align-content: start; }
+  .xi__media { aspect-ratio: 4 / 3; margin-bottom: 8px; }
+  .xi__media :global(img) { transition: transform 1.2s var(--ease-out); }
+  .xi__card:hover .xi__media :global(img) { transform: scale(1.05); }
+  @media (max-width: 900px) {
+    .xp__head { grid-template-columns: 1fr; }
+    .xp__body { grid-template-columns: 1fr; }
+    .xp__stage { display: none; }
+  }
+</style>

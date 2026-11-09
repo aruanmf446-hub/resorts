@@ -1,0 +1,16 @@
+---
+/** Editorial heading: eyebrow + display title with *emphasis* and | line breaks, line-mask reveal. */
+import { rich } from '../lib/sections';
+interface Props { eyebrow?: string; title: string; intro?: string; size?: 'mega' | 'xxl' | 'xl' | 'l' | 'm'; as?: 'h1' | 'h2' | 'h3'; class?: string; align?: 'start' | 'center' }
+const { eyebrow, title, intro, size = 'xl', as: Tag = 'h2', class: cls, align = 'start' } = Astro.props;
+---
+<header class:list={['heading', `heading--${align}`, cls]}>
+  {eyebrow && <p class="eyebrow" data-reveal="fade">{eyebrow}</p>}
+  <Tag class={`t-${size}`} data-reveal="lines" set:html={rich(title)} />
+  {intro && <p class="lede" data-reveal="fade" data-delay="0.25">{intro}</p>}
+</header>
+<style>
+  .heading { display: grid; gap: clamp(18px, 2.2vw, 30px); }
+  .heading--center { justify-items: center; text-align: center; }
+  .heading--center .lede { margin-inline: auto; }
+</style>

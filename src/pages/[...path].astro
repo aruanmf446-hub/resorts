@@ -1,0 +1,37 @@
+---
+/**
+ * Single dynamic route: every page, accommodation and experience is generated
+ * from the active preset. Disabled pages simply do not exist in the build.
+ */
+import Base from '../layouts/Base.astro';
+import Sections from '../components/Sections.astro';
+import StayDetail from '../components/StayDetail.astro';
+import ExperienceDetail from '../components/ExperienceDetail.astro';
+import { site, enabledPages } from '../lib/context';
+import { activeSections } from '../lib/sections';
+import type { PageConfig, Stay, Experience } from '../config/schema';
+
+export function getStaticPaths() {
+  const pages = enabledPages.map((p) => ({ params: { path: p.path === '' ? undefined : p.path }, props: { kind: 'page' as const, page: p } }));
+  const st = site.templates.stay;
+  const stays = st.enabled ? site.stays.map((s) => ({ params: { path: `${st.basePath}/${s.slug}` }, props: { kind: 'stay' as const, stay: s } })) : [];
+  const ex = site.templates.experience;
+  const exps = ex.enabled ? site.experiences.map((e) => ({ params: { path: `${ex.basePath}/${e.slug}` }, props: { kind: 'experience' as const, experience: e } })) : [];
+  return [...pages, ...stays, ...exps];
+}
+
+type Props = { kind: 'page'; page: PageConfig } | { kind: 'stay'; stay: Stay } | { kind: 'experience'; experience: Experience };
+const props = Astro.props as Props;
+let overlay = false;
+if (props.kind === 'page') {
+  const first = activeSections(props.page.sections)[0];
+  overlay = !!first && ((first.type === 'hero' && (first.variant === 'page' || site.theme.heroComposition !== 'split')) || (first.type === 'resortMap' && first.variant === 'full'));
+}
+---
+{props.kind === 'page' && (
+  <Base title={props.page.path === '' ? undefined : props.page.title} description={props.page.description} image={props.page.ogImage} pageId={props.page.id} heroOverlay={overlay}>
+    <Sections sections={props.page.sections} />
+  </Base>
+)}
+{props.kind === 'stay' && <StayDetail stay={props.stay} />}
+{props.kind === 'experience' && <ExperienceDetail experience={props.experience} />}

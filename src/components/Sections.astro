@@ -1,0 +1,11 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { activeSections } from '../lib/sections';
+import { registry } from '../sections/registry';
+interface Props { sections: SectionConfig[] }
+const list = activeSections(Astro.props.sections);
+---
+{list.map((section) => {
+  const Component = registry[section.type];
+  return <Component section={section} />;
+})}

@@ -1,0 +1,37 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { site, t, link } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string };
+const k = site.contacts;
+const channels = [
+  k.email && { label: t('contactEmail'), value: k.email, href: `mailto:${k.email}` },
+  k.phone && { label: t('contactPhone'), value: k.phone, href: `tel:${k.phone.replace(/\s/g, '')}` },
+  k.whatsapp && { label: t('contactWhatsapp'), value: `+${k.whatsapp}`, href: `https://wa.me/${k.whatsapp}?text=${encodeURIComponent(k.whatsappMessage)}` },
+  k.concierge && link.resolve(k.concierge.href) && { label: t('contactConcierge'), value: k.concierge.label, href: link.resolve(k.concierge.href)! },
+].filter(Boolean) as { label: string; value: string; href: string }[];
+---
+<Section section={section} class="ct-section">
+  <div class="wrap ct">
+    <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="xxl" as="h1" />
+    <ul class="ct__list" role="list">
+      {channels.map((ch) => (
+        <li data-reveal="fade"><span class="micro muted">{ch.label}</span><a class="t-m ct__val" href={ch.href} target={ch.href.startsWith('http') ? '_blank' : undefined} rel="noopener">{ch.value}</a></li>
+      ))}
+    </ul>
+    {k.hours && <p class="muted">{k.hours}</p>}
+    <address class="small muted">{site.identity.location.label} · {site.identity.location.address}</address>
+  </div>
+</Section>
+<style>
+  .ct-section { padding-top: calc(var(--header-h) + 80px); }
+  .ct { display: grid; gap: clamp(36px, 5vw, 72px); }
+  .ct__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 0 48px; }
+  .ct__list li { display: grid; gap: 8px; padding: 26px 0; border-top: 1px solid var(--c-line); }
+  .ct__val { overflow-wrap: anywhere; transition: color 0.4s; }
+  .ct__val:hover { color: var(--c-accent); }
+  address { font-style: normal; }
+</style>

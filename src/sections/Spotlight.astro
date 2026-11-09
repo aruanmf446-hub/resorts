@@ -1,0 +1,48 @@
+---
+/** Shared by: pools, beach, adventure, family, romantic, sports. */
+import type { SectionConfig, Image } from '../config/schema';
+import { site, link } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+import Btn from '../components/Btn.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; text?: string; image: Image; secondaryImage?: Image; category?: string; items: { title: string; text?: string }[]; cta?: { label: string; href: string } };
+const related = c.category ? site.experiences.filter((e) => e.category === c.category).slice(0, 4) : [];
+const flip = ['family', 'sports', 'romantic'].includes(section.type);
+---
+<Section section={section}>
+  <div class:list={['wrap grid sp', flip && 'sp--flip']}>
+    <div class="sp__visual">
+      <div class="media sp__main" data-reveal="mask"><Img image={c.image} sizes="(max-width: 900px) 100vw, 55vw" /></div>
+      {c.secondaryImage && <div class="media sp__second" data-parallax="0.25"><Img image={c.secondaryImage} sizes="25vw" /></div>}
+    </div>
+    <div class="sp__text">
+      <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="l" />
+      {c.text && <p class="prose" data-reveal="fade">{c.text}</p>}
+      {c.items.length > 0 && <ul class="sp__items" role="list" data-reveal="stagger">{c.items.map((i) => <li><span class="t-s">{i.title}</span>{i.text && <span class="small muted">{i.text}</span>}</li>)}</ul>}
+      {related.length > 0 && (
+        <ul class="sp__rel" role="list">
+          {related.map((e) => { const href = link.experience(e.slug); return <li>{href ? <a class="link" href={href}>{e.title}</a> : e.title}<span class="micro muted">{e.duration}</span></li>; })}
+        </ul>
+      )}
+      {c.cta && <Btn href={c.cta.href} label={c.cta.label} />}
+    </div>
+  </div>
+</Section>
+<style>
+  .sp { align-items: center; row-gap: 48px; }
+  .sp__visual { grid-column: 1 / span 6; position: relative; }
+  .sp__main { aspect-ratio: 5 / 6; }
+  .sp__second { position: absolute; width: 38%; aspect-ratio: 1; right: -12%; bottom: -8%; box-shadow: 0 30px 60px rgb(0 0 0 / 0.2); }
+  .sp__text { grid-column: 8 / -1; display: grid; gap: 30px; justify-items: start; }
+  .sp--flip .sp__visual { grid-column: 7 / -1; grid-row: 1; }
+  .sp--flip .sp__text { grid-column: 1 / span 5; grid-row: 1; }
+  .sp--flip .sp__second { right: auto; left: -12%; }
+  .sp__items { display: grid; gap: 14px; width: 100%; border-top: 1px solid var(--c-line); padding-top: 22px; }
+  .sp__items li { display: grid; gap: 2px; }
+  .sp__rel { display: grid; gap: 10px; width: 100%; }
+  .sp__rel li { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--c-line); padding-bottom: 10px; }
+  @media (max-width: 900px) { .sp__visual, .sp__text, .sp--flip .sp__visual, .sp--flip .sp__text { grid-column: 1 / -1; grid-row: auto; } .sp__second { right: 0 !important; left: auto !important; } }
+</style>

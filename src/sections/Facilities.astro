@@ -1,0 +1,20 @@
+---
+import type { SectionConfig } from '../config/schema';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; items: { title: string; text?: string }[] };
+---
+<Section section={section}>
+  <div class="wrap fa">
+    <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="l" />
+    <ul class="fa__list" role="list" data-reveal="stagger">{c.items.map((i) => <li><span class="t-m">{i.title}</span>{i.text && <span class="small muted">{i.text}</span>}</li>)}</ul>
+  </div>
+</Section>
+<style>
+  .fa { display: grid; grid-template-columns: 1fr 2fr; gap: clamp(32px, 6vw, 120px); align-items: start; }
+  .fa__list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; }
+  .fa__list li { display: grid; gap: 4px; padding: 20px 0; border-bottom: 1px solid var(--c-line); }
+  @media (max-width: 900px) { .fa, .fa__list { grid-template-columns: 1fr; } }
+</style>

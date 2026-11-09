@@ -1,0 +1,25 @@
+---
+/** Render only real, consented guest words — never invented reviews. */
+import type { SectionConfig } from '../config/schema';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; items: { quote: string; author: string; source: string; date?: string }[] };
+---
+<Section section={section}>
+  <div class="wrap tm">
+    <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="l" />
+    <ul role="list" class="tm__list">
+      {c.items.map((i) => (
+        <li><blockquote class="t-m">“{i.quote}”</blockquote><p class="micro muted">{i.author} · {i.source}{i.date && ` · ${i.date}`}</p></li>
+      ))}
+    </ul>
+  </div>
+</Section>
+<style>
+  .tm { display: grid; gap: 48px; }
+  .tm__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 48px; }
+  .tm__list li { display: grid; gap: 18px; border-top: 1px solid var(--c-line); padding-top: 24px; }
+  .tm__list blockquote { margin: 0; font-family: var(--f-accent); font-style: italic; text-transform: none; }
+</style>

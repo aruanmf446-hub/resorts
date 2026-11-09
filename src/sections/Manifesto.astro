@@ -1,0 +1,26 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { rich } from '../lib/sections';
+import Section from './Section.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; text: string; signature?: string; aside?: string };
+---
+<Section section={section}>
+  <div class="wrap mf">
+    {c.eyebrow && <p class="eyebrow mf__eyebrow" data-reveal="fade">{c.eyebrow}</p>}
+    <p class="mf__text t-l" data-scrub-words set:html={rich(c.text)} />
+    <div class="mf__foot">
+      {c.signature && <p class="mf__sig" data-reveal="fade">— {c.signature}</p>}
+      {c.aside && <p class="micro muted" data-reveal="fade">{c.aside}</p>}
+    </div>
+  </div>
+</Section>
+<style>
+  .mf { display: grid; gap: clamp(28px, 4vw, 56px); }
+  .mf__text { max-width: 26ch; font-size: calc(clamp(1.9rem, 4.4vw, 4.6rem) * var(--type-scale)); line-height: 1.08; text-transform: none; }
+  :global(html[data-art='mountain']) .mf__text { max-width: 30ch; font-size: calc(clamp(1.7rem, 3.6vw, 3.8rem) * var(--type-scale)); }
+  .mf__foot { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; max-width: 60rem; }
+  .mf__sig { font-family: var(--f-accent); font-style: italic; font-size: var(--fs-s); }
+  @media (min-width: 900px) { .mf { padding-left: calc((100% - var(--gutter) * 2) / 12 * 2); } }
+</style>

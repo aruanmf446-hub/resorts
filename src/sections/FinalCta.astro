@@ -1,0 +1,36 @@
+---
+import type { SectionConfig, Image } from '../config/schema';
+import { rich } from '../lib/sections';
+import Section from './Section.astro';
+import Img from '../components/Img.astro';
+import Btn from '../components/Btn.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; text?: string; image: Image; primary?: { label: string; href: string }; secondary?: { label: string; href: string } };
+---
+<Section section={section} flush defaultTheme="dark">
+  <div class="fc">
+    <div class="fc__media" data-parallax="0.2"><Img image={c.image} sizes="100vw" /></div>
+    <div class="fc__scrim" aria-hidden="true"></div>
+    <div class="wrap fc__content">
+      {c.eyebrow && <p class="eyebrow" data-reveal="fade">{c.eyebrow}</p>}
+      <h2 class="t-xxl" data-reveal="lines" set:html={rich(c.title)} />
+      {c.text && <p class="lede" data-reveal="fade">{c.text}</p>}
+      <div class="fc__ctas" data-reveal="fade" data-delay="0.3">
+        {c.primary && <Btn href={c.primary.href} label={c.primary.label} />}
+        {c.secondary && <Btn href={c.secondary.href} label={c.secondary.label} variant="ghost" />}
+      </div>
+    </div>
+  </div>
+</Section>
+<style>
+  .fc { position: relative; min-height: 100svh; display: grid; place-items: center; overflow: hidden; color: #fbf8f2; text-align: center; }
+  .fc__media { position: absolute; inset: -14% 0; }
+  .fc__media :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .fc__scrim { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgb(0 0 0 / 0.15), rgb(0 0 0 / 0.55)); }
+  .fc__content { position: relative; display: grid; gap: 28px; justify-items: center; padding-block: 120px; }
+  .fc__content .t-xxl { max-width: 15ch; }
+  .fc .lede { color: rgb(255 255 255 / 0.86); margin-inline: auto; }
+  .fc__ctas { display: flex; gap: 36px; flex-wrap: wrap; justify-content: center; }
+  :global(html[data-buttons='frame']) .fc :global(.btn:hover) { background: #fff; color: #111; border-color: #fff; }
+</style>

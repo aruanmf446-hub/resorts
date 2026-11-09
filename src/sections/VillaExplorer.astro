@@ -1,0 +1,51 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { stayById, link, t } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+import Btn from '../components/Btn.astro';
+interface Props { section: SectionConfig; stay?: string }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; stay: string };
+const stay = stayById(Astro.props.stay ?? c.stay);
+const model = stay?.model;
+---
+{stay && model && (
+  <Section section={section} defaultTheme="dark">
+    <div class="wrap vx">
+      <div class="vx__head">
+        <Heading eyebrow={c.eyebrow ?? t('model3d')} title={c.title} intro={c.intro} size="l" />
+        <Btn href={`stay:${stay.slug}`} label={stay.name} />
+      </div>
+      <div class="vx__stage" data-villa-explorer data-src={model.src ?? ''} data-scale={model.scale} data-hotspots={JSON.stringify(model.hotspots)} data-state="loading">
+        <div class="vx__fallback media"><Img image={stay.cover} /></div>
+        <canvas class="vx__canvas" aria-label={`${t('model3d')}: ${stay.name}`} role="img"></canvas>
+        <div class="vx__hotspots" data-villa-hotspots></div>
+        <div class="vx__info" data-villa-info hidden></div>
+        <ul class="vx__list" role="list">
+          {model.hotspots.map((h, i) => <li><span class="micro">{String(i + 1).padStart(2, '0')}</span> {h.label} — <span class="muted">{h.text}</span></li>)}
+        </ul>
+      </div>
+      <p class="micro muted">{t('floorplan')} · {t('mapHint')}</p>
+    </div>
+  </Section>
+)}
+<script>import '../scripts/villa';</script>
+<style>
+  .vx { display: grid; gap: 36px; }
+  .vx__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+  .vx__stage { position: relative; height: min(78vh, 820px); min-height: 460px; border-radius: var(--radius); overflow: hidden; background: radial-gradient(ellipse at 50% 60%, rgb(255 255 255 / 0.1), transparent 70%), var(--c-dark); }
+  .vx__fallback { position: absolute; inset: 0; }
+  .vx__canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1s; touch-action: none; }
+  .vx__stage[data-state='ready'] .vx__canvas { opacity: 1; }
+  .vx__stage[data-state='ready'] .vx__fallback { opacity: 0; transition: opacity 1s; }
+  .vx__hotspots { position: absolute; inset: 0; pointer-events: none; }
+  .vx__hotspots :global(.villa-hotspot) { position: absolute; left: 0; top: 0; pointer-events: auto; display: flex; gap: 10px; align-items: center; color: #fff; font-size: 0.74rem; letter-spacing: 0.08em; min-height: 32px; }
+  .vx__hotspots :global(.villa-hotspot__dot) { width: 12px; height: 12px; border-radius: 50%; background: var(--c-accent); box-shadow: 0 0 0 6px rgb(255 255 255 / 0.25); margin-left: -6px; }
+  .vx__hotspots :global(.villa-hotspot__label) { background: rgb(0 0 0 / 0.4); padding: 5px 10px; border-radius: 999px; }
+  .vx__info { position: absolute; right: 20px; bottom: 20px; width: min(320px, 80%); background: var(--c-bg); color: var(--c-ink); --c-ink-soft: #666; padding: 22px; display: grid; gap: 8px; border-radius: max(var(--radius), 2px); }
+  .vx__list { position: absolute; left: 20px; bottom: 20px; display: grid; gap: 6px; font-size: var(--fs-small); max-width: 46%; }
+  .vx__stage[data-state='ready'] .vx__list { display: none; }
+  @media (max-width: 760px) { .vx__list { max-width: none; right: 20px; background: rgb(0 0 0 / 0.5); padding: 12px; } }
+</style>

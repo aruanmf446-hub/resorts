@@ -1,0 +1,79 @@
+---
+import type { Experience, SectionConfig } from '../config/schema';
+import Base from '../layouts/Base.astro';
+import Sections from './Sections.astro';
+import Img from './Img.astro';
+import Btn from './Btn.astro';
+import { site, t, link, categoryLabel } from '../lib/context';
+interface Props { experience: Experience }
+const { experience: e } = Astro.props;
+const sec = (s: Partial<SectionConfig> & { type: SectionConfig['type'] }): SectionConfig => ({ enabled: true, content: {}, assets: {}, animation: 'auto', ...s });
+const extra: SectionConfig[] = e.gallery.length >= 3 ? [sec({ type: 'gallery', content: { title: e.title, images: e.gallery } })] : [];
+const related = site.experiences.filter((x) => x.slug !== e.slug && (x.category === e.category || x.interests.some((i) => e.interests.includes(i)))).slice(0, 3);
+const plannerHref = link.page('planner');
+const mapHref = e.poi ? link.resolve(`poi:${e.poi}`) : null;
+const contactCta = e.cta ?? (site.contacts.whatsapp
+  ? { label: t('contactWhatsapp'), href: `https://wa.me/${site.contacts.whatsapp}?text=${encodeURIComponent(`${site.contacts.whatsappMessage} — ${e.title}`)}` }
+  : site.contacts.email ? { label: t('contactEmail'), href: `mailto:${site.contacts.email}?subject=${encodeURIComponent(e.title)}` } : null);
+const meta = [
+  e.duration && [t('duration'), e.duration],
+  e.ages && [t('ages'), e.ages],
+  e.location && [t('location'), e.location],
+  e.availability && [t('availability'), e.availability],
+].filter(Boolean) as [string, string][];
+---
+<Base title={e.title} description={e.summary} image={e.cover.src} pageId="experiences" heroOverlay>
+  <section class="ed-hero" data-theme="dark">
+    <div class="ed-hero__media media" data-reveal="mask" data-start="top 100%"><Img image={e.cover} eager /></div>
+    <div class="ed-hero__scrim" aria-hidden="true"></div>
+    <div class="wrap ed-hero__content">
+      {link.page('experiences') && <a class="micro link ed-back" href={link.page('experiences')}>← {categoryLabel(e.category)}</a>}
+      <h1 class="t-xxl" data-reveal="lines" data-start="top 100%">{e.title}</h1>
+      <p class="lede" data-reveal="fade" data-delay="0.3" data-start="top 100%">{e.summary}</p>
+    </div>
+  </section>
+  <section class="section" data-theme="light">
+    <div class="wrap grid ed">
+      <div class="ed__story prose">{e.description.map((p, i) => <p class={i === 0 ? 'lede' : ''} data-reveal="fade">{p}</p>)}</div>
+      <aside class="ed__meta">
+        <dl>{meta.map(([k, v]) => <div><dt class="micro muted">{k}</dt><dd>{v}</dd></div>)}</dl>
+        {e.conditions.length > 0 && <div class="ed__cond"><p class="micro muted">{t('conditions')}</p><ul role="list">{e.conditions.map((c) => <li class="small">{c}</li>)}</ul></div>}
+        <div class="ed__ctas">
+          {contactCta && <Btn href={contactCta.href} label={contactCta.label} />}
+          {plannerHref && <a class="link small" href={`${plannerHref}#p=${e.slug}`}>+ {t('plannerAdd')}</a>}
+          {mapHref && <a class="link small" href={mapHref}>{t('onTheMap')}</a>}
+        </div>
+      </aside>
+    </div>
+  </section>
+  <Sections sections={extra} />
+  {related.length > 0 && (
+    <section class="section" data-theme="alt">
+      <div class="wrap ed-rel">
+        <h2 class="t-l">{t('related')}</h2>
+        <ul role="list" class="ed-rel__list">{related.map((x) => <li><a class="ed-rel__card" href={link.experience(x.slug)}><span class="media"><Img image={x.cover} sizes="33vw" /></span><span class="micro muted">{categoryLabel(x.category)}</span><span class="t-s">{x.title}</span></a></li>)}</ul>
+      </div>
+    </section>
+  )}
+  <Sections sections={site.templates.experience.after} />
+</Base>
+<style>
+  .ed-hero { position: relative; height: 88svh; min-height: 560px; display: grid; color: #fbf8f2; overflow: hidden; background: var(--c-dark); }
+  .ed-hero__media { position: absolute; inset: 0; border-radius: 0; }
+  .ed-hero__scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / 0.35), transparent 30%, rgb(0 0 0 / 0.6)); }
+  .ed-hero__content { position: relative; align-self: end; padding-bottom: clamp(70px, 10vh, 120px); display: grid; gap: 18px; }
+  .ed-hero .t-xxl { max-width: 16ch; }
+  .ed-hero .lede { color: rgb(255 255 255 / 0.86); }
+  .ed-back { justify-self: start; letter-spacing: 0.18em; }
+  .ed { row-gap: 48px; align-items: start; }
+  .ed__story { grid-column: 1 / span 7; display: grid; gap: 20px; }
+  .ed__meta { grid-column: 9 / -1; display: grid; gap: 28px; position: sticky; top: calc(var(--header-h) + 24px); }
+  .ed__meta dl > div { padding: 14px 0; border-bottom: 1px solid var(--c-line); display: grid; gap: 4px; }
+  .ed__cond ul { margin-top: 10px; display: grid; gap: 6px; }
+  .ed__ctas { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; }
+  .ed-rel { display: grid; gap: 40px; }
+  .ed-rel__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 32px; }
+  .ed-rel__card { display: grid; gap: 8px; }
+  .ed-rel__card .media { aspect-ratio: 4 / 3; margin-bottom: 8px; }
+  @media (max-width: 900px) { .ed__story, .ed__meta { grid-column: 1 / -1; position: static; } }
+</style>

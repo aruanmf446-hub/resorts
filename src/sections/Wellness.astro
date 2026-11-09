@@ -1,0 +1,77 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { site, t } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+import Btn from '../components/Btn.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; cta?: { label: string; href: string } };
+const w = site.wellness;
+const full = section.variant === 'full';
+const kinds = w ? [...new Set(w.rituals.map((r) => r.kind))] : [];
+---
+{w && (
+  <Section section={section}>
+    <div class="wrap wl">
+      {full ? (
+        <>
+          <div class="wl__intro grid">
+            <div class="wl__lead">
+              <Heading eyebrow={w.name} title={c.title} intro={w.summary} size="l" />
+              {w.description.map((p) => <p class="prose" data-reveal="fade">{p}</p>)}
+              {w.hours && <p class="micro muted">{t('hours')}: {w.hours}</p>}
+              {w.cta && <Btn href={w.cta.href} label={w.cta.label} />}
+            </div>
+            <div class="wl__mosaic">
+              {w.gallery.slice(0, 3).map((g, i) => <div class:list={['media', `wl__m${i}`]} data-reveal="mask" data-delay={String(i * 0.15)}><Img image={g} sizes="30vw" /></div>)}
+            </div>
+          </div>
+          {kinds.map((k) => (
+            <section class="wl__group" aria-label={k}>
+              <h3 class="micro muted wl__kind">{k}</h3>
+              <ul role="list">
+                {w.rituals.filter((r) => r.kind === k).map((r) => (
+                  <li class="wl__row" data-reveal="fade"><span class="t-m">{r.name}</span><span class="muted">{r.summary}</span><span class="micro num">{r.duration}</span></li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </>
+      ) : (
+        <div class="wl__show grid">
+          <div class="wl__showimg media" data-reveal="mask"><div class="wl__par" data-parallax="0.15"><Img image={w.cover} sizes="(max-width: 900px) 100vw, 60vw" /></div></div>
+          <div class="wl__showtext">
+            <Heading eyebrow={c.eyebrow ?? w.name} title={c.title} intro={c.intro ?? w.summary} size="xl" />
+            <ul role="list" class="wl__mini">{w.rituals.slice(0, 4).map((r) => <li><span>{r.name}</span><span class="micro muted num">{r.duration}</span></li>)}</ul>
+            {c.cta && <Btn href={c.cta.href} label={c.cta.label} />}
+          </div>
+        </div>
+      )}
+    </div>
+  </Section>
+)}
+<style>
+  .wl { display: grid; gap: clamp(56px, 8vw, 120px); }
+  .wl__intro { row-gap: 48px; align-items: start; }
+  .wl__lead { grid-column: 1 / span 5; display: grid; gap: 24px; justify-items: start; }
+  .wl__mosaic { grid-column: 7 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .wl__m0 { grid-column: 1 / -1; aspect-ratio: 16 / 10; }
+  .wl__m1, .wl__m2 { aspect-ratio: 1; }
+  .wl__m2 { transform: translateY(18%); }
+  .wl__group { display: grid; gap: 14px; }
+  .wl__kind { letter-spacing: 0.22em; }
+  .wl__row { display: grid; grid-template-columns: 1.2fr 2fr auto; gap: 24px; align-items: baseline; padding: 22px 0; border-top: 1px solid var(--c-line); }
+  .wl__show { align-items: center; row-gap: 48px; }
+  .wl__showimg { grid-column: 1 / span 7; aspect-ratio: 4 / 5; max-height: 90vh; }
+  .wl__par { position: absolute; inset: -10% 0; }
+  .wl__par :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .wl__showtext { grid-column: 9 / -1; display: grid; gap: 32px; justify-items: start; }
+  .wl__mini { width: 100%; display: grid; }
+  .wl__mini li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--c-line); }
+  @media (max-width: 900px) {
+    .wl__lead, .wl__mosaic, .wl__showimg, .wl__showtext { grid-column: 1 / -1; }
+    .wl__row { grid-template-columns: 1fr; gap: 6px; }
+  }
+</style>

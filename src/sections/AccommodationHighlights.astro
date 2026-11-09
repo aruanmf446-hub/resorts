@@ -1,0 +1,46 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { site, t } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; slugs?: string[] };
+const stays = c.slugs ? site.stays.filter((s) => c.slugs!.includes(s.slug)) : site.stays;
+const amenities = [...new Set(stays.flatMap((s) => s.amenities))].slice(0, 10);
+const images = stays.flatMap((s) => s.gallery.slice(0, 2)).slice(0, 6);
+---
+{amenities.length > 0 && (
+  <Section section={section} flush>
+    <div class="hl" data-hscroll>
+      <div class="hl__track" data-hscroll-track>
+        <div class="hl__intro">
+          <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="xl" />
+          <ul role="list" class="hl__list">{amenities.map((a) => <li>{a}</li>)}</ul>
+        </div>
+        {images.map((img, i) => (
+          <figure class:list={['hl__card', i % 2 && 'hl__card--low']}>
+            <div class="media"><Img image={img} sizes="40vw" /></div>
+            <figcaption>{img.alt}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </Section>
+)}
+<style>
+  .hl { overflow: hidden; padding-block: var(--space-section); }
+  .hl__track { display: flex; gap: clamp(24px, 4vw, 64px); padding-inline: var(--gutter); width: max-content; align-items: center; }
+  .hl__intro { width: min(560px, 80vw); display: grid; gap: 36px; flex: none; }
+  .hl__list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; font-size: var(--fs-small); border-top: 1px solid var(--c-line); padding-top: 22px; }
+  .hl__list li::before { content: '— '; color: var(--c-accent); }
+  .hl__card { width: clamp(260px, 30vw, 460px); flex: none; }
+  .hl__card .media { aspect-ratio: 4 / 5; }
+  .hl__card--low { transform: translateY(14%); }
+  @media (max-width: 899px) {
+    .hl__track { width: auto; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 20px; }
+    .hl__card { scroll-snap-align: start; width: 72vw; }
+    .hl__card--low { transform: none; }
+  }
+</style>

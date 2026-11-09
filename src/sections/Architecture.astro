@@ -1,0 +1,32 @@
+---
+import type { SectionConfig, Image } from '../config/schema';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; body: string[]; images: Image[]; quote?: string };
+---
+<Section section={section}>
+  <div class="wrap grid ar">
+    <div class="ar__text">
+      <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="xl" />
+      <div class="prose" data-reveal="fade">{c.body.map((p) => <p>{p}</p>)}</div>
+    </div>
+    <div class="ar__imgs">
+      {c.images.map((img, i) => <figure class:list={['ar__fig', `ar__fig--${i}`]}><div class="media" data-reveal="mask" data-delay={String(i * 0.2)}><Img image={img} sizes="40vw" /></div></figure>)}
+    </div>
+    {c.quote && <blockquote class="ar__quote t-l" data-reveal="lines">“{c.quote}”</blockquote>}
+  </div>
+</Section>
+<style>
+  .ar { row-gap: clamp(48px, 7vw, 110px); align-items: start; }
+  .ar__text { grid-column: 1 / span 5; display: grid; gap: 30px; position: sticky; top: calc(var(--header-h) + 40px); }
+  .ar__imgs { grid-column: 7 / -1; display: grid; gap: clamp(24px, 4vw, 64px); }
+  .ar__fig { margin: 0; }
+  .ar__fig--0 .media { aspect-ratio: 4 / 5; width: 82%; }
+  .ar__fig--1 .media { aspect-ratio: 3 / 2; width: 90%; margin-left: auto; }
+  .ar__fig--2 .media { aspect-ratio: 1; width: 60%; }
+  .ar__quote { grid-column: 2 / span 10; text-align: center; font-style: italic; font-family: var(--f-accent); text-transform: none; }
+  @media (max-width: 900px) { .ar__text, .ar__imgs, .ar__quote { grid-column: 1 / -1; position: static; } .ar__fig .media { width: 100% !important; } }
+</style>

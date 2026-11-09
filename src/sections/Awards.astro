@@ -1,0 +1,22 @@
+---
+/** Only list awards the resort has actually received. */
+import type { SectionConfig } from '../config/schema';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; items: { name: string; by: string; year: string; href?: string }[] };
+---
+<Section section={section}>
+  <div class="wrap aw">
+    <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="l" />
+    <ul role="list" class="aw__list">
+      {c.items.map((i) => <li><span class="num micro">{i.year}</span><span class="t-s">{i.href ? <a class="link" href={i.href} target="_blank" rel="noopener">{i.name}</a> : i.name}</span><span class="muted small">{i.by}</span></li>)}
+    </ul>
+  </div>
+</Section>
+<style>
+  .aw { display: grid; gap: 40px; }
+  .aw__list li { display: grid; grid-template-columns: 5rem 2fr 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--c-line); align-items: baseline; }
+  @media (max-width: 760px) { .aw__list li { grid-template-columns: 4rem 1fr; } .aw__list li span:last-child { grid-column: 2; } }
+</style>

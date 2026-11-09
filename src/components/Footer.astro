@@ -1,0 +1,54 @@
+---
+import { site, t, navItems } from '../lib/context';
+const pages = [...navItems('primary'), ...navItems('secondary')];
+const year = new Date().getFullYear();
+---
+<footer class="ftr" data-theme="dark">
+  <div class="wrap">
+    <div class="ftr__top">
+      <p class="ftr__tag t-l" data-reveal="lines">{site.identity.tagline}</p>
+    </div>
+    <div class="ftr__grid">
+      <nav aria-label={t('explore')}>
+        <p class="micro muted">{t('explore')}</p>
+        <ul role="list">{pages.map((p) => <li><a class="link" href={p.href}>{p.label}</a></li>)}</ul>
+      </nav>
+      <div>
+        <p class="micro muted">{t('location')}</p>
+        <address>{site.identity.location.label}<br />{site.identity.location.address}</address>
+        {site.integrations.maps.googleMapsUrl && <a class="link small" href={site.integrations.maps.googleMapsUrl} target="_blank" rel="noopener">Google Maps ↗</a>}
+      </div>
+      <div>
+        <p class="micro muted">{t('contactEmail')}</p>
+        <ul role="list">
+          {site.contacts.email && <li><a class="link" href={`mailto:${site.contacts.email}`}>{site.contacts.email}</a></li>}
+          {site.contacts.phone && <li><a class="link" href={`tel:${site.contacts.phone.replace(/\s/g, '')}`}>{site.contacts.phone}</a></li>}
+          {site.contacts.whatsapp && <li><a class="link" href={`https://wa.me/${site.contacts.whatsapp}`} target="_blank" rel="noopener">WhatsApp ↗</a></li>}
+        </ul>
+      </div>
+      {site.contacts.social.length > 0 && (
+        <div>
+          <p class="micro muted">{t('follow')}</p>
+          <ul role="list">{site.contacts.social.map((s) => <li><a class="link" href={s.href} target="_blank" rel="noopener">{s.label} ↗</a></li>)}</ul>
+        </div>
+      )}
+    </div>
+    <div class="ftr__mark" aria-hidden="true">{site.identity.wordmark}</div>
+    <div class="ftr__legal small muted">
+      <span>© {year} {site.identity.name}</span>
+      {site.identity.notice && <span class="ftr__notice">{t('fictional')} — {site.identity.notice}</span>}
+    </div>
+  </div>
+</footer>
+<style>
+  .ftr { background: var(--c-dark); color: var(--c-dark-ink); padding: clamp(80px, 12vw, 180px) 0 calc(40px + env(safe-area-inset-bottom)); overflow: hidden; }
+  .ftr__top { max-width: 22ch; margin-bottom: clamp(56px, 8vw, 120px); }
+  .ftr__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px; font-size: var(--fs-small); }
+  .ftr__grid ul { display: grid; gap: 8px; margin-top: 14px; }
+  .ftr__grid address { font-style: normal; margin: 14px 0 10px; color: var(--c-dark-soft); }
+  .ftr__mark { font-family: var(--f-display); font-variation-settings: var(--fv-display); font-weight: var(--fw-display); font-size: clamp(4rem, 19vw, 22rem); letter-spacing: 0.04em; line-height: 0.8; margin: clamp(60px, 9vw, 140px) 0 28px; color: rgb(255 255 255 / 0.08); white-space: nowrap; text-transform: var(--display-case); }
+  .ftr__legal { display: flex; flex-wrap: wrap; gap: 12px 32px; justify-content: space-between; border-top: 1px solid rgb(255 255 255 / 0.14); padding-top: 22px; }
+  .ftr__notice { max-width: 70ch; }
+  @media (max-width: 860px) { .ftr__grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 760px) { .ftr { padding-bottom: 110px; } }
+</style>

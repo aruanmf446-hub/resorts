@@ -1,0 +1,38 @@
+---
+import type { SectionConfig, Image } from '../config/schema';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+import Btn from '../components/Btn.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; body: string[]; image: Image; secondaryImage?: Image; facts: { value: string; label: string }[]; cta?: { label: string; href: string } };
+---
+<Section section={section}>
+  <div class="wrap grid intro">
+    <div class="intro__text">
+      <Heading eyebrow={c.eyebrow} title={c.title} size="xl" />
+      <div class="prose" data-reveal="fade">{c.body.map((p) => <p>{p}</p>)}</div>
+      {c.facts.length > 0 && (
+        <dl class="intro__facts" data-reveal="stagger">
+          {c.facts.map((f) => <div><dt class="t-l num" data-count={f.value}>{f.value}</dt><dd class="micro muted">{f.label}</dd></div>)}
+        </dl>
+      )}
+      {c.cta && <Btn href={c.cta.href} label={c.cta.label} />}
+    </div>
+    <div class="intro__visual">
+      <div class="media intro__main" data-reveal="mask"><Img image={c.image} sizes="(max-width: 900px) 100vw, 50vw" /></div>
+      {c.secondaryImage && <div class="media intro__second" data-parallax="0.3"><Img image={c.secondaryImage} sizes="25vw" /></div>}
+    </div>
+  </div>
+</Section>
+<style>
+  .intro { row-gap: 56px; align-items: center; }
+  .intro__text { grid-column: 1 / span 5; display: grid; gap: 36px; align-content: start; }
+  .intro__visual { grid-column: 7 / -1; position: relative; padding-bottom: 14%; }
+  .intro__main { aspect-ratio: 4 / 5; }
+  .intro__second { position: absolute; width: 42%; aspect-ratio: 4 / 5; left: -22%; bottom: 0; box-shadow: 0 30px 60px rgb(0 0 0 / 0.18); }
+  .intro__facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; border-top: 1px solid var(--c-line); padding-top: 26px; }
+  .intro__facts dd { margin-top: 8px; }
+  @media (max-width: 900px) { .intro__text, .intro__visual { grid-column: 1 / -1; } .intro__second { left: auto; right: -4%; width: 40%; } }
+</style>

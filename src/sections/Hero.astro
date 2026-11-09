@@ -1,0 +1,155 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { site, t } from '../lib/context';
+import { rich } from '../lib/sections';
+import Section from './Section.astro';
+import Img from '../components/Img.astro';
+import Btn from '../components/Btn.astro';
+import WorldMap from '../components/WorldMap.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title?: string; intro?: string; image?: import('../config/schema').Image };
+const h = site.hero;
+const isPage = section.variant === 'page';
+const comp = site.theme.heroComposition;
+const mode = h.mode === 'immersive3d' && !site.world?.enabled ? 'editorial' : h.mode;
+const frames = [h.image, ...h.frames];
+---
+{isPage ? (
+  <Section section={section} flush class="hero hero--page" defaultTheme="dark">
+    <div class="hero__media media" data-reveal="mask" data-start="top 100%">
+      {c.image && <div class="hero__parallax" data-parallax="0.18"><Img image={c.image} eager /></div>}
+    </div>
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <div class="hero__content wrap">
+      {c.eyebrow && <p class="eyebrow" data-reveal="fade" data-start="top 100%">{c.eyebrow}</p>}
+      <h1 class="t-xxl" data-reveal="lines" data-start="top 100%" set:html={rich(c.title ?? '')} />
+      {c.intro && <p class="lede" data-reveal="fade" data-delay="0.3" data-start="top 100%">{c.intro}</p>}
+    </div>
+  </Section>
+) : (
+  <Section section={section} flush class:list={['hero', 'hero--home', `hero--${mode}`, `hero--${comp}`]} defaultTheme="dark" label={site.identity.name}>
+    <div class="hero__media">
+      {mode === 'immersive3d' && <WorldMap variant="hero" intro id="hero-world" />}
+      {mode === 'video' && h.video && (
+        <div class="hero__video" data-hero-video>
+          <video muted loop playsinline preload="metadata" poster={h.video.poster.src} aria-label={h.video.label} data-src={h.video.src} data-src-mobile={h.video.srcMobile} data-webm={h.video.webm}>
+            {h.video.captions && <track kind="captions" src={h.video.captions} srclang={h.video.captionsLang ?? site.locale} label={h.video.label} />}
+          </video>
+          <Img image={h.image} eager class="hero__poster" />
+        </div>
+      )}
+      {mode === 'editorial' && (
+        <div class="hero__frames" data-hero-frames>
+          {frames.map((f, i) => <div class:list={['hero__frame', i === 0 && 'is-active']}><Img image={f} eager={i === 0} /></div>)}
+        </div>
+      )}
+    </div>
+    {comp !== 'split' && <div class="hero__scrim" aria-hidden="true"></div>}
+    <div class="hero__content wrap">
+      <p class="eyebrow" data-reveal="fade" data-delay="0.6" data-start="top 100%">{h.eyebrow}</p>
+      <h1 class="t-mega" data-reveal="lines" data-delay="0.35" data-start="top 100%" set:html={rich(h.title)} />
+      <div class="hero__foot">
+        {h.subtitle && <p class="lede" data-reveal="fade" data-delay="1.1" data-start="top 100%">{h.subtitle}</p>}
+        <div class="hero__ctas" data-reveal="fade" data-delay="1.3" data-start="top 100%">
+          {h.primary && <Btn href={h.primary.href} label={h.primary.label} />}
+          {h.secondary && <Btn href={h.secondary.href} label={h.secondary.label} variant="ghost" />}
+        </div>
+      </div>
+    </div>
+    <div class="hero__meta wrap micro" aria-hidden="true">
+      {h.coordinates && <span>{h.coordinates}</span>}
+      <span class="hero__scroll"><i></i>{t('scroll')}</span>
+    </div>
+    {mode === 'video' && <button type="button" class="hero__play micro" data-video-toggle aria-pressed="false">{t('playVideo')}</button>}
+  </Section>
+)}
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'none';
+  document.querySelectorAll<HTMLElement>('[data-hero-video]').forEach((wrap) => {
+    const v = wrap.querySelector('video')!;
+    const btn = wrap.parentElement!.parentElement!.querySelector<HTMLButtonElement>('[data-video-toggle]');
+    const mobile = matchMedia('(max-width: 760px)').matches;
+    const save = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    const src = (mobile && v.dataset.srcMobile) || v.dataset.src!;
+    if (v.dataset.webm && v.canPlayType('video/webm; codecs="vp9"')) v.src = v.dataset.webm; else v.src = src;
+    const labels = { play: btn?.textContent ?? 'Play', pause: document.documentElement.lang.startsWith('pt') ? 'Pausar filme' : 'Pause film' };
+    const set = (playing: boolean) => { if (btn) { btn.setAttribute('aria-pressed', String(playing)); btn.textContent = playing ? labels.pause : labels.play; } };
+    const play = () => v.play().then(() => { wrap.classList.add('is-playing'); set(true); }).catch(() => set(false));
+    v.addEventListener('playing', () => wrap.classList.add('is-playing'));
+    if (!reduce && !save) play();
+    btn?.addEventListener('click', () => { if (v.paused) play(); else { v.pause(); set(false); } });
+    new IntersectionObserver(([e]) => { if (!e.isIntersecting) v.pause(); else if (btn?.getAttribute('aria-pressed') === 'true') v.play().catch(() => {}); }).observe(v);
+  });
+  document.querySelectorAll<HTMLElement>('[data-hero-frames]').forEach((el) => {
+    const frames = Array.from(el.children) as HTMLElement[];
+    if (frames.length < 2 || reduce) return;
+    let i = 0;
+    setInterval(() => {
+      if (document.hidden) return;
+      frames[i].classList.remove('is-active');
+      i = (i + 1) % frames.length;
+      frames[i].classList.add('is-active');
+    }, 6500);
+  });
+</script>
+
+<style>
+  .hero { position: relative; overflow: hidden; color: #fbf8f2; background: var(--c-dark); }
+  .hero--home { height: 100svh; min-height: 620px; display: grid; }
+  .hero--page { height: min(86svh, 900px); min-height: 520px; display: grid; }
+  .hero__media { position: absolute; inset: 0; }
+  .hero__media :global(img), .hero__media video { width: 100%; height: 100%; object-fit: cover; }
+  .hero--page .hero__media { border-radius: 0; }
+  .hero__parallax { position: absolute; inset: -12% 0; }
+  .hero__scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgb(0 0 0 / 0.35) 0%, rgb(0 0 0 / 0) 26%, rgb(0 0 0 / 0) 46%, rgb(0 0 0 / 0.55) 100%); }
+  .hero--immersive3d .hero__scrim { background: linear-gradient(180deg, rgb(0 0 0 / 0.3), transparent 24%, transparent 55%, rgb(0 0 0 / 0.5)); }
+  .hero__content { position: relative; z-index: 2; align-self: end; padding-bottom: clamp(88px, 12vh, 150px); display: grid; gap: clamp(18px, 2.4vw, 32px); pointer-events: none; }
+  .hero__content :global(a), .hero__content :global(button) { pointer-events: auto; }
+  .hero--home .t-mega { max-width: 12ch; }
+  .hero__foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+  .hero .lede { color: rgb(255 255 255 / 0.86); max-width: 40ch; }
+  .hero__ctas { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
+  .hero__meta { position: absolute; left: 0; right: 0; bottom: 28px; z-index: 2; display: flex; justify-content: space-between; letter-spacing: 0.2em; opacity: 0.8; pointer-events: none; }
+  .hero__scroll { display: inline-flex; align-items: center; gap: 14px; margin-left: auto; }
+  .hero__scroll i { width: 1px; height: 36px; background: linear-gradient(currentColor 50%, transparent 50%) 0 0 / 1px 200%; animation: scrollcue 2.4s var(--ease-calm) infinite; }
+  @keyframes scrollcue { from { background-position: 0 100%; } to { background-position: 0 -100%; } }
+
+  /* composition: center */
+  .hero--center .hero__content { align-self: center; justify-items: center; text-align: center; padding-bottom: 0; }
+  .hero--center .t-mega { max-width: 14ch; }
+  .hero--center .hero__foot { flex-direction: column; align-items: center; }
+  .hero--center .lede { margin-inline: auto; }
+
+  /* composition: split (editorial) */
+  .hero--split { background: var(--c-bg); color: var(--c-ink); }
+  .hero--split .hero__media { left: 46%; inset-block: calc(var(--header-h) + 8px) var(--gutter); right: var(--gutter); border-radius: var(--radius); overflow: hidden; }
+  .hero--split .hero__content { align-self: center; padding-bottom: 0; max-width: 46%; margin-left: 0; }
+  .hero--split .t-mega { font-size: calc(clamp(3rem, 8vw, 9.5rem) * var(--type-scale)); }
+  .hero--split .lede { color: var(--c-ink-soft); }
+  .hero--split .hero__foot { flex-direction: column; align-items: flex-start; }
+  .hero--split .hero__meta { color: var(--c-ink); }
+
+  .hero__video { position: absolute; inset: 0; }
+  .hero__video video { position: absolute; inset: 0; opacity: 0; transition: opacity 1.6s var(--ease-calm); }
+  .hero__video.is-playing video { opacity: 1; }
+  .hero__video :global(picture) { position: absolute; inset: 0; }
+  .hero__video.is-playing :global(.hero__poster) { opacity: 0; transition: opacity 1.6s 0.4s; }
+  .hero__play { position: absolute; right: var(--gutter); top: calc(var(--header-h) + 16px); z-index: 3; letter-spacing: 0.2em; padding: 10px 16px; border: 1px solid rgb(255 255 255 / 0.4); border-radius: 999px; color: #fff; min-height: 40px; }
+
+  .hero__frames, .hero__frame { position: absolute; inset: 0; }
+  .hero__frame { opacity: 0; transition: opacity 2.4s var(--ease-calm); }
+  .hero__frame.is-active { opacity: 1; }
+  .hero__frame :global(img) { transform: scale(1.06); transition: transform 9s linear; }
+  .hero__frame.is-active :global(img) { transform: scale(1); }
+
+  @media (max-width: 860px) {
+    .hero--split { display: block; height: auto; min-height: 0; padding-top: var(--header-h); }
+    .hero--split .hero__media { position: relative; inset: auto; height: 62svh; margin: 0 var(--gutter); }
+    .hero--split .hero__content { max-width: none; padding-block: 40px 90px; }
+    .hero--split .hero__meta { display: none; }
+    .hero__meta span:first-child { display: none; }
+  }
+  @media (max-width: 760px) { .hero__content { padding-bottom: 110px; } .hero__meta { bottom: 96px; } .hero__scroll { display: none; } }
+</style>

@@ -1,0 +1,168 @@
+---
+/**
+ * Interactive resort world. Progressive: the illustrated map + accessible place
+ * list render first (and remain if WebGL is unavailable); the 3D world mounts on top.
+ */
+import { site, t, poiPayload, categoryLabel } from '../lib/context';
+import { clientStrings } from '../i18n/ui';
+import Img from './Img.astro';
+interface Props { variant?: 'embed' | 'full' | 'hero'; intro?: boolean; id?: string }
+const { variant = 'embed', intro = false, id = 'world' } = Astro.props;
+const w = site.world!;
+const pois = poiPayload();
+const data = {
+  mode: w.mode, model: w.model, seed: w.seed, terrain: w.terrain, water: w.water, vegetation: w.vegetation,
+  architecture: w.architecture, atmosphere: w.atmosphere, camera: w.camera,
+};
+// 2D fallback positions: explicit mapPosition or derived from world x/z (top-down render).
+const fallbackPos = (p: (typeof pois)[number]) => p.mapPosition ?? [50 + (p.position[0] / 120) * 100, 50 + (p.position[1] / 120) * 100];
+const cats = [...new Set(pois.map((p) => p.category))];
+const interactive = variant !== 'hero';
+const strings = clientStrings(site.locale, ['seePlace', 'close', 'loading3d']);
+const webgl = w.enabled && (w.mode === 'procedural' || w.mode === 'model');
+---
+<div
+  class:list={['wm', `wm--${variant}`]}
+  data-world={webgl ? JSON.stringify({ data, pois, interactive, intro, variant, strings }) : undefined}
+  data-state="fallback"
+  id={id}
+>
+  <div class="wm__stage">
+    <div class="wm__fallback">
+      <Img image={w.fallback} class="wm__fallback-img" eager={variant === 'hero'} sizes="100vw" />
+      {variant !== 'hero' && (
+        <div class="wm__pins" aria-hidden="true">
+          {pois.map((p) => { const [x, y] = fallbackPos(p); return <span class="wm__pin" style={`left:${x}%;top:${y}%`} data-cat={p.category}><i></i><b>{p.name}</b></span>; })}
+        </div>
+      )}
+    </div>
+    {webgl && <canvas class="wm__canvas" aria-label={t('enterMap')} role="img"></canvas>}
+    {webgl && <p class="wm__loading micro" aria-live="polite">{t('loading3d')}</p>}
+    {interactive && <div class="wm__hotspots" data-hotspots></div>}
+  </div>
+
+  {interactive && (
+    <>
+      <div class="wm__ui">
+        {w.atmosphere.times.length > 1 && (
+          <div class="wm__ctl" role="group" aria-label={t('atmosphere')} data-ctl-time>
+            {w.atmosphere.times.map((tm) => <button type="button" data-time={tm} aria-pressed={String(tm === w.atmosphere.defaultTime)}>{t(tm)}</button>)}
+          </div>
+        )}
+        {w.atmosphere.seasons.length > 1 && (
+          <div class="wm__ctl" role="group" aria-label={t('season')} data-ctl-season>
+            {w.atmosphere.seasons.map((s) => <button type="button" data-season={s} aria-pressed={String(s === (w.atmosphere.defaultSeason ?? w.atmosphere.seasons[0]))}>{t(s)}</button>)}
+          </div>
+        )}
+        <button type="button" class="wm__reset" data-reset>{t('resetView')}</button>
+      </div>
+      <p class="wm__hint micro">{t('mapHint')}</p>
+
+      <nav class="wm__places" aria-label={t('places')}>
+        <p class="micro wm__places-title">{t('places')}</p>
+        {cats.length > 1 && (
+          <div class="wm__filters" role="group" aria-label={t('places')}>
+            <button type="button" data-filter="" aria-pressed="true">{t('all')}</button>
+            {cats.map((c) => <button type="button" data-filter={c} aria-pressed="false">{c}</button>)}
+          </div>
+        )}
+        <ol role="list" class="wm__list">
+          {pois.map((p, i) => (
+            <li data-cat={p.category}>
+              <button type="button" data-poi={p.id} id={`poi-${p.id}`}>
+                <span class="wm__idx">{String(i + 1).padStart(2, '0')}</span>
+                <span>{p.name}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <aside class="wm__panel" data-panel hidden aria-live="polite">
+        {pois.map((p) => (
+          <article data-panel-for={p.id} hidden>
+            {p.image && <div class="media wm__panel-media"><img src={p.image.src} alt={p.image.alt} loading="lazy" width="800" height="500" /></div>}
+            <p class="eyebrow">{p.category}</p>
+            <h3 class="t-m">{p.name}</h3>
+            <p class="muted">{p.summary}</p>
+            {p.href && <a class="btn" href={p.href}><span>{t('seePlace')}</span><span class="btn__arrow" aria-hidden="true"></span></a>}
+          </article>
+        ))}
+        <button type="button" class="wm__panel-close" data-panel-close aria-label={t('close')}>×</button>
+      </aside>
+    </>
+  )}
+</div>
+
+<script>
+  import { mountWorldMaps } from '../scripts/map';
+  mountWorldMaps();
+</script>
+
+<style>
+  .wm { position: relative; color: var(--c-dark-ink); background: var(--c-dark); overflow: hidden; isolation: isolate; }
+  .wm--embed { height: min(88vh, 900px); min-height: 560px; border-radius: var(--radius); }
+  .wm--full { height: 100svh; min-height: 600px; }
+  .wm--hero { position: absolute; inset: 0; }
+  .wm__stage { position: absolute; inset: 0; }
+  .wm__fallback { position: absolute; inset: 0; display: grid; place-items: center; background: var(--c-dark); }
+  .wm__fallback :global(picture), .wm__fallback :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .wm--embed .wm__fallback :global(img), .wm--full .wm__fallback :global(img) { object-fit: contain; max-width: min(100%, 100vh); margin: auto; }
+  .wm__pins { position: absolute; inset: 0; margin: auto; aspect-ratio: 1; max-width: 100%; max-height: 100%; }
+  .wm__pin { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 8px; font-size: 0.72rem; letter-spacing: 0.06em; white-space: nowrap; }
+  .wm__pin i { width: 9px; height: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 5px rgb(255 255 255 / 0.25); }
+  .wm__pin b { font-weight: 500; text-shadow: 0 1px 8px rgb(0 0 0 / 0.6); }
+  .wm__canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.4s var(--ease-calm); touch-action: none; }
+  .wm[data-state='ready'] .wm__canvas { opacity: 1; }
+  .wm[data-state='ready'] .wm__pins, .wm[data-state='ready'] .wm__loading { opacity: 0; visibility: hidden; }
+  .wm__loading { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); letter-spacing: 0.24em; opacity: 0.7; transition: opacity 0.6s; }
+  .wm[data-state='fallback'] .wm__loading { display: none; }
+  .wm[data-state='loading'] .wm__loading { animation: breathe 2.2s ease-in-out infinite; }
+  @keyframes breathe { 50% { opacity: 0.25; } }
+
+  .wm__hotspots { position: absolute; inset: 0; pointer-events: none; }
+  .wm__hotspots :global(.hs) {
+    position: absolute; left: 0; top: 0; pointer-events: auto; display: flex; align-items: center; gap: 10px;
+    font-size: 0.74rem; letter-spacing: 0.08em; color: #fff; transition: opacity 0.4s; will-change: transform; min-height: 32px;
+  }
+  .wm__hotspots :global(.hs__dot) { width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 6px rgb(255 255 255 / 0.22); transition: transform 0.4s var(--ease-out), box-shadow 0.4s; flex: none; }
+  .wm__hotspots :global(.hs__label) { background: rgb(0 0 0 / 0.38); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 999px; opacity: 0; transform: translateX(-6px); transition: opacity 0.4s, transform 0.5s var(--ease-out); white-space: nowrap; }
+  .wm__hotspots :global(.hs:hover .hs__label), .wm__hotspots :global(.hs:focus-visible .hs__label), .wm__hotspots :global(.hs.is-active .hs__label) { opacity: 1; transform: none; }
+  .wm__hotspots :global(.hs:hover .hs__dot), .wm__hotspots :global(.hs.is-active .hs__dot) { transform: scale(1.3); box-shadow: 0 0 0 9px rgb(255 255 255 / 0.25); background: var(--c-accent); }
+  .wm__hotspots :global(.hs.is-dim) { opacity: 0.18; }
+  .wm[data-state='fallback'] .wm__hotspots { display: none; }
+
+  .wm__ui { position: absolute; top: calc(var(--header-h) + 8px); right: var(--gutter); display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; z-index: 3; }
+  .wm--embed .wm__ui { top: 24px; }
+  .wm__ctl { display: inline-flex; background: rgb(0 0 0 / 0.32); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 999px; padding: 4px; }
+  .wm__ctl button, .wm__reset { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; padding: 9px 14px; border-radius: 999px; min-height: 36px; color: rgb(255 255 255 / 0.75); }
+  .wm__ctl button[aria-pressed='true'] { background: rgb(255 255 255 / 0.92); color: #161616; }
+  .wm__reset { background: rgb(0 0 0 / 0.32); backdrop-filter: blur(10px); }
+  .wm[data-state='fallback'] .wm__ui { display: none; }
+  .wm__hint { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); opacity: 0.6; letter-spacing: 0.16em; pointer-events: none; text-align: center; width: max-content; max-width: 90%; }
+  .wm[data-state='fallback'] .wm__hint { display: none; }
+
+  .wm__places { position: absolute; left: var(--gutter); bottom: 64px; z-index: 3; width: min(300px, 40vw); max-height: 60%; overflow: auto; background: rgb(0 0 0 / 0.28); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 18px 20px; border-radius: max(var(--radius), 4px); }
+  .wm__places-title { letter-spacing: 0.22em; opacity: 0.7; margin-bottom: 10px; }
+  .wm__filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .wm__filters button { font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border: 1px solid rgb(255 255 255 / 0.25); border-radius: 999px; min-height: 28px; }
+  .wm__filters button[aria-pressed='true'] { background: #fff; color: #111; }
+  .wm__list button { display: flex; gap: 12px; width: 100%; text-align: left; padding: 7px 0; font-size: 0.92rem; color: rgb(255 255 255 / 0.78); transition: color 0.3s, transform 0.4s var(--ease-out); min-height: 36px; align-items: center; }
+  .wm__list button:hover, .wm__list button[aria-current='true'] { color: #fff; transform: translateX(6px); }
+  .wm__list li[hidden] { display: none; }
+  .wm__idx { font-size: 0.66rem; opacity: 0.5; font-feature-settings: 'tnum'; }
+
+  .wm__panel { position: absolute; right: var(--gutter); bottom: 64px; z-index: 4; width: min(380px, 44vw); background: var(--c-bg); color: var(--c-ink); --c-ink-soft: #6b6b66; padding: 22px; border-radius: max(var(--radius), 2px); box-shadow: 0 30px 60px rgb(0 0 0 / 0.3); display: grid; gap: 14px; }
+  .wm__panel article { display: grid; gap: 12px; }
+  .wm__panel-media { aspect-ratio: 16 / 10; }
+  .wm__panel-close { position: absolute; top: 10px; right: 14px; font-size: 1.6rem; width: 40px; height: 40px; color: var(--c-ink); }
+  .wm__panel-media + .eyebrow ~ .wm__panel-close { color: #fff; }
+  @media (max-width: 760px) {
+    .wm--embed { height: 78svh; min-height: 520px; }
+    .wm__places { left: 12px; right: 12px; width: auto; bottom: 12px; max-height: 34%; padding: 14px; }
+    .wm__panel { left: 12px; right: 12px; width: auto; bottom: 12px; max-height: 70%; overflow: auto; }
+    .wm__hint { display: none; }
+    .wm__ui { left: 12px; right: 12px; justify-content: flex-start; top: 76px; }
+    .wm--embed .wm__ui { top: 12px; }
+  }
+</style>

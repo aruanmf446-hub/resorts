@@ -1,0 +1,108 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { site, t, link } from '../lib/context';
+import { clientStrings } from '../i18n/ui';
+import { rich } from '../lib/sections';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Btn from '../components/Btn.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; cta?: { label: string; href: string } };
+const full = section.variant === 'full';
+const payload = full ? {
+  resort: site.identity.name,
+  whatsapp: site.contacts.whatsapp ?? null,
+  email: site.contacts.email ?? null,
+  interests: site.plannerInterests,
+  experiences: site.experiences.map((e) => ({ slug: e.slug, title: e.title, summary: e.summary, interests: e.interests, time: e.timeOfDay, duration: e.duration ?? '', img: e.cover.src, href: link.experience(e.slug) })),
+  t: clientStrings(site.locale, ['plannerAdd', 'plannerRemove', 'plannerUp', 'plannerDown', 'plannerEmpty', 'plannerDay', 'morning', 'afternoon', 'evening', 'anytime', 'plannerCopied', 'plannerCopy', 'plannerDisclaimer', 'plannerSelection', 'plannerItinerary']),
+} : null;
+---
+{site.experiences.length > 0 && (full ? (
+  <Section section={section} class="pl-section">
+    <div class="wrap pl" data-planner={JSON.stringify(payload)}>
+      <div class="pl__main">
+        <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="xl" as="h1" />
+        <fieldset class="pl__interests">
+          <legend class="micro muted">{t('plannerInterests')}</legend>
+          <div class="pl__chips">
+            {site.plannerInterests.map((i) => <button type="button" class="pl__chip" data-interest={i.id} aria-pressed="false" title={i.hint}>{i.label}</button>)}
+          </div>
+        </fieldset>
+        <h2 class="micro muted pl__sub">{t('plannerSuggested')}</h2>
+        <ul class="pl__grid" role="list" data-suggestions></ul>
+      </div>
+      <aside class="pl__aside" aria-labelledby="pl-sel">
+        <div class="pl__card" data-theme="dark">
+          <div class="pl__cardhead">
+            <h2 id="pl-sel" class="t-s">{t('plannerSelection')} <span class="num" data-count-sel>0</span></h2>
+            <label class="pl__days micro">{t('plannerDays')} <select data-days>{[1, 2, 3, 4, 5, 6, 7].map((d) => <option value={d} selected={d === 3}>{d}</option>)}</select></label>
+          </div>
+          <ol class="pl__sel" role="list" data-selection></ol>
+          <p class="small muted pl__empty" data-empty>{t('plannerEmpty')}</p>
+          <div class="pl__itin" data-itinerary hidden></div>
+          <div class="pl__actions" data-actions hidden>
+            <button type="button" class="btn" data-copy><span>{t('plannerCopy')}</span><span class="btn__arrow" aria-hidden="true"></span></button>
+            <button type="button" class="link small" data-share hidden>{t('plannerShare')}</button>
+            {site.contacts.whatsapp && <a class="link small" data-wa target="_blank" rel="noopener" href="#">{t('plannerWhatsapp')}</a>}
+            {site.contacts.email && <a class="link small" data-mail href="#">{t('plannerEmail')}</a>}
+            <button type="button" class="link small" data-clear>{t('plannerClear')}</button>
+          </div>
+          <p class="micro muted pl__disc">{t('plannerDisclaimer')}</p>
+          <p class="sr-only" role="status" aria-live="polite" data-status></p>
+        </div>
+      </aside>
+    </div>
+  </Section>
+) : (
+  <Section section={section} defaultTheme="accent">
+    <div class="wrap plt">
+      {c.eyebrow && <p class="eyebrow" data-reveal="fade">{c.eyebrow}</p>}
+      <h2 class="t-xxl" data-reveal="lines" set:html={rich(c.title)} />
+      <ul class="plt__chips" role="list" data-reveal="stagger">{site.plannerInterests.map((i) => <li>{i.label}</li>)}</ul>
+      {c.intro && <p class="lede" data-reveal="fade">{c.intro}</p>}
+      {c.cta && <Btn href={c.cta.href} label={c.cta.label} />}
+    </div>
+  </Section>
+))}
+<script>import '../scripts/planner';</script>
+<style>
+  .plt { display: grid; gap: clamp(24px, 3vw, 40px); justify-items: start; }
+  .plt .t-xxl { max-width: 14ch; }
+  .plt__chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .plt__chips li { border: 1px solid currentColor; padding: 10px 18px; border-radius: 999px; font-size: var(--fs-small); opacity: 0.9; }
+  .pl-section { padding-top: calc(var(--header-h) + 60px); }
+  .pl { display: grid; grid-template-columns: minmax(0, 1fr) min(440px, 36%); gap: clamp(32px, 5vw, 80px); align-items: start; }
+  .pl__main { display: grid; gap: 40px; }
+  .pl__interests { border: 0; padding: 0; margin: 0; display: grid; gap: 16px; }
+  .pl__chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pl__chip { border: 1px solid var(--c-line); padding: 12px 20px; border-radius: 999px; font-size: var(--fs-small); min-height: 44px; transition: background-color 0.4s, color 0.4s, border-color 0.4s; }
+  .pl__chip[aria-pressed='true'] { background: var(--c-ink); color: var(--c-bg); border-color: var(--c-ink); }
+  .pl__sub { letter-spacing: 0.2em; }
+  .pl__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 32px 24px; }
+  .pl__grid :global(.pc) { display: grid; gap: 10px; align-content: start; }
+  .pl__grid :global(.pc__media) { aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden; background: var(--c-bg-alt); }
+  .pl__grid :global(.pc__media img) { width: 100%; height: 100%; object-fit: cover; }
+  .pl__grid :global(.pc__add) { justify-self: start; font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; padding: 10px 16px; border: 1px solid currentColor; border-radius: 999px; min-height: 40px; }
+  .pl__grid :global(.pc__add[aria-pressed='true']) { background: var(--c-accent); color: var(--c-accent-ink); border-color: var(--c-accent); }
+  .pl__grid :global(.pc.is-match .pc__media) { box-shadow: 0 0 0 2px var(--c-accent); }
+  .pl__aside { position: sticky; top: calc(var(--header-h) + 16px); }
+  .pl__card { background: var(--c-dark); color: var(--c-dark-ink); padding: clamp(22px, 3vw, 36px); border-radius: max(var(--radius), 2px); display: grid; gap: 20px; max-height: calc(100vh - var(--header-h) - 32px); overflow: auto; }
+  .pl__cardhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .pl__days select { background: transparent; border: 1px solid var(--c-line); color: inherit; padding: 6px 10px; margin-left: 8px; border-radius: 4px; }
+  .pl__days select option { color: #111; }
+  .pl__sel { display: grid; gap: 6px; }
+  .pl__sel :global(li) { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 10px 12px; background: rgb(255 255 255 / 0.06); border-radius: 4px; cursor: grab; }
+  .pl__sel :global(li.is-drag) { opacity: 0.4; }
+  .pl__sel :global(.ps__btns) { display: flex; gap: 2px; }
+  .pl__sel :global(.ps__btns button) { width: 32px; height: 32px; border-radius: 4px; opacity: 0.75; }
+  .pl__sel :global(.ps__btns button:hover) { background: rgb(255 255 255 / 0.12); opacity: 1; }
+  .pl__itin { display: grid; gap: 16px; border-top: 1px solid var(--c-line); padding-top: 18px; }
+  .pl__itin :global(h3) { font-size: var(--fs-micro); letter-spacing: 0.2em; text-transform: uppercase; color: var(--c-dark-soft); }
+  .pl__itin :global(dl) { display: grid; grid-template-columns: 6.5rem 1fr; gap: 4px 12px; font-size: var(--fs-small); }
+  .pl__itin :global(dt) { color: var(--c-dark-soft); }
+  .pl__actions { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+  .pl__disc { line-height: 1.5; }
+  @media (max-width: 960px) { .pl { grid-template-columns: 1fr; } .pl__aside { position: static; } .pl__card { max-height: none; } }
+</style>

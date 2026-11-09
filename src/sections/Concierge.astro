@@ -1,0 +1,30 @@
+---
+import type { SectionConfig, Image } from '../config/schema';
+import { site, link } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; text?: string; services: string[]; image?: Image };
+const cc = site.contacts.concierge;
+---
+<Section section={section}>
+  <div class="wrap grid co">
+    <div class="co__text">
+      <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="xl" />
+      {c.text && <p class="prose" data-reveal="fade">{c.text}</p>}
+      {c.services.length > 0 && <ul role="list" class="co__list" data-reveal="stagger">{c.services.map((s) => <li>{s}</li>)}</ul>}
+      {cc && link.resolve(cc.href) && <a class="btn" href={link.resolve(cc.href)}><span>{cc.label}</span><span class="btn__arrow" aria-hidden="true"></span></a>}
+    </div>
+    {c.image && <div class="media co__img" data-reveal="mask"><Img image={c.image} sizes="40vw" /></div>}
+  </div>
+</Section>
+<style>
+  .co { row-gap: 40px; align-items: center; }
+  .co__text { grid-column: 1 / span 6; display: grid; gap: 28px; justify-items: start; }
+  .co__img { grid-column: 8 / -1; aspect-ratio: 4 / 5; }
+  .co__list { columns: 2; column-gap: 32px; width: 100%; }
+  .co__list li { padding: 10px 0; border-bottom: 1px solid var(--c-line); break-inside: avoid; }
+  @media (max-width: 900px) { .co__text, .co__img { grid-column: 1 / -1; } .co__list { columns: 1; } }
+</style>

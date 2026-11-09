@@ -1,0 +1,34 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { site, link } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import BookingForm from '../components/BookingForm.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string };
+const page = section.variant === 'page';
+const offers = site.booking.offers;
+---
+<Section section={section} class:list={[page && 'bkp']}>
+  <div class="wrap grid bks">
+    <div class="bks__head"><Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size={page ? 'xxl' : 'xl'} as={page ? 'h1' : 'h2'} /></div>
+    <div class="bks__form" data-reveal="fade"><BookingForm id={`booking-${section.id ?? 'section'}`} /></div>
+    {offers.length > 0 && (
+      <ul class="bks__offers" role="list">
+        {offers.map((o) => { const href = link.resolve(o.cta.href); return (
+          <li data-reveal="fade"><p class="t-s">{o.title}</p><p class="small muted">{o.summary}</p>{href && <a class="link small" href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener">{o.cta.label}</a>}</li>
+        ); })}
+      </ul>
+    )}
+  </div>
+</Section>
+<style>
+  .bkp { padding-top: calc(var(--header-h) + 80px); }
+  .bks { row-gap: 56px; }
+  .bks__head { grid-column: 1 / span 5; }
+  .bks__form { grid-column: 7 / -1; }
+  .bks__offers { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 32px; border-top: 1px solid var(--c-line); padding-top: 40px; }
+  .bks__offers li { display: grid; gap: 8px; align-content: start; }
+  @media (max-width: 900px) { .bks__head, .bks__form { grid-column: 1 / -1; } }
+</style>

@@ -1,0 +1,58 @@
+---
+import type { SectionConfig, Image } from '../config/schema';
+import Section from './Section.astro';
+import Img from '../components/Img.astro';
+import { rich } from '../lib/sections';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; chapters: { title: string; text: string; image: Image }[] };
+---
+<Section section={section} flush defaultTheme="dark">
+  <div class="ls" data-chapters>
+    <div class="ls__stage" data-chapter-stage>
+      {c.chapters.map((ch, i) => (
+        <div class="ls__media" data-chapter-media style={`z-index:${i + 1}`}><Img image={ch.image} /><div class="ls__cap wrap"><h3 class="t-xl">{ch.title}</h3><p class="lede">{ch.text}</p></div></div>
+      ))}
+      <div class="ls__scrim" aria-hidden="true"></div>
+      <div class="ls__head wrap">
+        {c.eyebrow && <p class="eyebrow">{c.eyebrow}</p>}
+        <h2 class="t-l" set:html={rich(c.title)} />
+      </div>
+      <div class="ls__texts wrap">
+        {c.chapters.map((ch, i) => (
+          <div class="ls__text" data-chapter-text>
+            <span class="micro">{String(i + 1).padStart(2, '0')} / {String(c.chapters.length).padStart(2, '0')}</span>
+            <h3 class="t-xxl">{ch.title}</h3>
+            <p class="lede">{ch.text}</p>
+          </div>
+        ))}
+      </div>
+      <div class="ls__progress" aria-hidden="true"><span data-chapter-progress></span></div>
+    </div>
+  </div>
+</Section>
+<style>
+  .ls { position: relative; color: #fbf8f2; }
+  .ls__stage { position: relative; height: 100svh; overflow: hidden; }
+  .ls__media { position: absolute; inset: 0; }
+  .ls__media :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .ls__scrim { position: absolute; inset: 0; z-index: 20; background: linear-gradient(180deg, rgb(0 0 0 / 0.42), transparent 30%, transparent 55%, rgb(0 0 0 / 0.5)); }
+  .ls__head { position: absolute; top: calc(var(--header-h) + 3vh); left: 0; right: 0; z-index: 21; display: grid; gap: 14px; }
+  .ls__head .t-l { max-width: 18ch; }
+  .ls__texts { position: absolute; left: 0; right: 0; bottom: 9vh; z-index: 21; display: grid; }
+  .ls__text { grid-area: 1 / 1; display: grid; gap: 14px; }
+  .ls__text .lede { color: rgb(255 255 255 / 0.85); }
+  .ls__progress { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 4vh; height: 1px; background: rgb(255 255 255 / 0.25); z-index: 21; }
+  .ls__progress span { display: block; height: 100%; background: #fff; transform-origin: left; transform: scaleX(0); }
+  /* Without pinning (mobile / reduced motion): chapters stack. */
+  .ls__cap { display: none; }
+  .ls:not(:global(.chapters--pinned)) .ls__stage { height: auto; display: grid; }
+  .ls:not(:global(.chapters--pinned)) .ls__cap { display: grid; gap: 10px; position: absolute; left: 0; right: 0; bottom: 40px; z-index: 2; }
+  .ls:not(:global(.chapters--pinned)) .ls__cap .lede { color: rgb(255 255 255 / 0.88); }
+  .ls:not(:global(.chapters--pinned)) .ls__media::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgb(0 0 0 / 0.55)); }
+  .ls:not(:global(.chapters--pinned)) .ls__head { order: -1; position: relative; top: auto; padding-block: 100px 40px; background: var(--c-dark); }
+  .ls:not(:global(.chapters--pinned)) .ls__scrim { display: none; }
+  .ls:not(:global(.chapters--pinned)) .ls__media { position: relative; inset: auto; height: 70svh; z-index: auto !important; }
+  .ls:not(:global(.chapters--pinned)) .ls__texts { display: none; }
+  .ls:not(:global(.chapters--pinned)) .ls__progress { display: none; }
+</style>

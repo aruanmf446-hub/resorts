@@ -1,0 +1,21 @@
+---
+import type { Image } from '../config/schema';
+interface Props { image: Image; class?: string; eager?: boolean; sizes?: string; [k: string]: unknown }
+const { image, class: cls, eager = false, sizes = '100vw', ...rest } = Astro.props;
+---
+<picture>
+  {image.srcMobile && <source media="(max-width: 760px)" srcset={image.srcMobile} />}
+  <img
+    src={image.src}
+    alt={image.alt}
+    width={image.width}
+    height={image.height}
+    loading={eager ? 'eager' : 'lazy'}
+    decoding={eager ? 'sync' : 'async'}
+    fetchpriority={eager ? 'high' : undefined}
+    sizes={sizes}
+    class={cls}
+    style={image.position ? `object-position:${image.position}` : undefined}
+    {...rest}
+  />
+</picture>

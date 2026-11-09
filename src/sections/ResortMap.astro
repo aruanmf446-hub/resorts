@@ -1,0 +1,43 @@
+---
+import type { SectionConfig } from '../config/schema';
+import { site } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Btn from '../components/Btn.astro';
+import WorldMap from '../components/WorldMap.astro';
+import Img from '../components/Img.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; cta?: { label: string; href: string } };
+const full = section.variant === 'full';
+const w = site.world;
+---
+{w?.enabled ? (
+  full ? (
+    <Section section={section} flush defaultTheme="dark">
+      <h1 class="sr-only">{c.title}</h1>
+      <WorldMap variant="full" id="world-full" />
+    </Section>
+  ) : (
+    <Section section={section} defaultTheme="dark">
+      <div class="wrap rm">
+        <div class="rm__head">
+          <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="xl" />
+          {c.cta && <Btn href={c.cta.href} label={c.cta.label} />}
+        </div>
+        <div data-reveal="rise"><WorldMap variant="embed" id={`world-${section.id ?? 'embed'}`} /></div>
+      </div>
+    </Section>
+  )
+) : (
+  w?.fallback && (
+    <Section section={section} defaultTheme="dark">
+      <div class="wrap rm"><Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} /><div class="media"><Img image={w.fallback} /></div></div>
+    </Section>
+  )
+)}
+<style>
+  .rm { display: grid; gap: clamp(36px, 5vw, 72px); }
+  .rm__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+  .rm__head :global(.heading) { max-width: 44rem; }
+</style>

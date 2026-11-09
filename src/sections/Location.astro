@@ -1,0 +1,37 @@
+---
+import type { SectionConfig, Image } from '../config/schema';
+import { site, t } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; text?: string; access: { mode: string; text: string }[]; image?: Image };
+const maps = site.integrations.maps;
+const loc = site.identity.location;
+---
+<Section section={section}>
+  <div class="wrap grid lo">
+    <div class="lo__text">
+      <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="xl" />
+      {c.text && <p class="prose" data-reveal="fade">{c.text}</p>}
+      <address class="lo__addr">{loc.label}<br />{loc.address}</address>
+      <dl class="lo__access">{c.access.map((a) => <div data-reveal="fade"><dt class="t-s">{a.mode}</dt><dd class="muted">{a.text}</dd></div>)}</dl>
+      <div class="lo__links">
+        {maps.googleMapsUrl && <a class="btn" href={maps.googleMapsUrl} target="_blank" rel="noopener"><span>Google Maps</span><span class="btn__arrow" aria-hidden="true"></span></a>}
+        {maps.appleMapsUrl && <a class="btn btn--ghost" href={maps.appleMapsUrl} target="_blank" rel="noopener"><span>Apple Maps</span><span class="btn__arrow" aria-hidden="true"></span></a>}
+      </div>
+    </div>
+    {c.image && <div class="media lo__img" data-reveal="mask"><Img image={c.image} sizes="(max-width: 900px) 100vw, 50vw" /></div>}
+  </div>
+</Section>
+<style>
+  .lo { row-gap: 48px; align-items: start; }
+  .lo__text { grid-column: 1 / span 5; display: grid; gap: 30px; }
+  .lo__img { grid-column: 7 / -1; aspect-ratio: 4 / 5; }
+  .lo__addr { font-style: normal; color: var(--c-ink-soft); }
+  .lo__access { display: grid; gap: 0; }
+  .lo__access > div { padding: 18px 0; border-top: 1px solid var(--c-line); display: grid; gap: 4px; }
+  .lo__links { display: flex; gap: 28px; flex-wrap: wrap; }
+  @media (max-width: 900px) { .lo__text, .lo__img { grid-column: 1 / -1; } }
+</style>

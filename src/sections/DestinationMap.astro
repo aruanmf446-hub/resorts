@@ -1,0 +1,68 @@
+---
+import type { SectionConfig } from '../config/schema';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; places: { name: string; kind: string; distance: string; text?: string; x: number; y: number }[] };
+const home = c.places[0];
+---
+<Section section={section}>
+  <div class="wrap dm" data-dmap>
+    <Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="l" />
+    <div class="dm__body">
+      <svg class="dm__svg" viewBox="0 0 100 80" role="img" aria-label={c.title}>
+        <defs>
+          <pattern id="dm-dots" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r="0.22" class="dm__dot" /></pattern>
+        </defs>
+        <rect width="100" height="80" fill="url(#dm-dots)" />
+        {[18, 32, 46].map((r) => <circle cx={home.x} cy={home.y * 0.8} r={r} class="dm__ring" />)}
+        {c.places.slice(1).map((p, i) => <line x1={home.x} y1={home.y * 0.8} x2={p.x} y2={p.y * 0.8} class="dm__line" data-line={i + 1} pathLength="1" />)}
+        {c.places.map((p, i) => (
+          <g class:list={['dm__pt', i === 0 && 'dm__pt--home']} data-pt={i}>
+            <circle cx={p.x} cy={p.y * 0.8} r={i === 0 ? 1.6 : 1} />
+            <text x={p.x + 2.2} y={p.y * 0.8 + 0.9}>{p.name}</text>
+          </g>
+        ))}
+      </svg>
+      <ol class="dm__list" role="list">
+        {c.places.map((p, i) => (
+          <li tabindex="0" data-li={i}>
+            <span class="micro muted">{p.kind}</span>
+            <span class="t-s">{p.name}</span>
+            <span class="small">{p.distance}</span>
+            {p.text && <span class="small muted">{p.text}</span>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+</Section>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-dmap]').forEach((root) => {
+    root.querySelectorAll<HTMLElement>('[data-li]').forEach((li) => {
+      const on = (v: boolean) => {
+        root.querySelector(`[data-pt="${li.dataset.li}"]`)?.classList.toggle('is-on', v);
+        root.querySelector(`[data-line="${li.dataset.li}"]`)?.classList.toggle('is-on', v);
+      };
+      li.addEventListener('mouseenter', () => on(true)); li.addEventListener('mouseleave', () => on(false));
+      li.addEventListener('focus', () => on(true)); li.addEventListener('blur', () => on(false));
+    });
+  });
+</script>
+<style>
+  .dm { display: grid; gap: clamp(36px, 5vw, 72px); }
+  .dm__body { display: grid; grid-template-columns: 3fr 2fr; gap: clamp(24px, 4vw, 72px); align-items: center; }
+  .dm__svg { width: 100%; overflow: visible; }
+  .dm__dot { fill: var(--c-ink); opacity: 0.25; }
+  .dm__ring { fill: none; stroke: var(--c-ink); stroke-width: 0.12; opacity: 0.25; stroke-dasharray: 0.5 0.8; }
+  .dm__line { stroke: var(--c-accent); stroke-width: 0.25; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.2s var(--ease-out); }
+  .dm__line.is-on { stroke-dashoffset: 0; }
+  .dm__pt circle { fill: var(--c-ink); transition: r 0.4s; }
+  .dm__pt--home circle { fill: var(--c-accent); }
+  .dm__pt text { font-size: 2.3px; fill: var(--c-ink); font-family: var(--f-body); letter-spacing: 0.05em; }
+  .dm__pt.is-on circle { r: 1.8; fill: var(--c-accent); }
+  .dm__list li { display: grid; gap: 2px; padding: 16px 0; border-top: 1px solid var(--c-line); cursor: default; transition: padding 0.5s var(--ease-out); }
+  .dm__list li:hover, .dm__list li:focus-visible { padding-left: 12px; }
+  @media (max-width: 900px) { .dm__body { grid-template-columns: 1fr; } }
+</style>

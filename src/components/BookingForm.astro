@@ -1,0 +1,62 @@
+---
+/**
+ * Elegant reservation form. Never processes bookings: it hands the request to
+ * the configured external system (engine URL, WhatsApp, e-mail or concierge).
+ */
+import { site, t, link } from '../lib/context';
+import { clientStrings } from '../i18n/ui';
+interface Props { stay?: string; id?: string; compact?: boolean }
+const { stay, id = 'booking', compact = false } = Astro.props;
+const b = site.booking;
+const f = b.fields;
+const payload = {
+  mode: b.mode,
+  engine: b.engine ? { provider: b.engine.provider, url: b.engine.url, params: b.engine.params, dateFormat: b.engine.dateFormat, extra: b.engine.extra, target: b.engine.target } : null,
+  url: b.url ?? null,
+  limits: b.limits,
+  whatsapp: site.contacts.whatsapp ?? null,
+  whatsappMessage: site.contacts.whatsappMessage,
+  email: site.contacts.email ?? null,
+  concierge: site.contacts.concierge ? link.resolve(site.contacts.concierge.href) : null,
+  resort: site.identity.name,
+  stays: site.stays.map((s) => ({ slug: s.slug, name: s.name, code: s.bookingCode ?? s.slug, url: s.bookingUrl ?? null })),
+  t: clientStrings(site.locale, ['checkIn', 'checkOut', 'adults', 'children', 'accommodation', 'promo', 'errDates', 'errPast', 'errMax', 'errMin', 'errRequired', 'nights', 'night1']),
+};
+const external = b.mode === 'engine' || b.mode === 'redirect' || b.mode === 'direct';
+const submitLabel = external ? t('checkAvailability') : b.mode === 'whatsapp' ? `${t('sendRequest')} — WhatsApp` : b.mode === 'email' ? `${t('sendRequest')} — E-mail` : t('sendRequest');
+const range = (n: number, from = 0) => Array.from({ length: n - from + 1 }, (_, i) => i + from);
+---
+{b.mode === 'disabled' ? (
+  <div class="bk bk--disabled"><p class="lede">{t('bookingDisabled')}</p><a class="btn" href={link.page('contact') ?? `mailto:${site.contacts.email ?? ''}`}><span>{t('contactEmail')}</span><span class="btn__arrow" aria-hidden="true"></span></a></div>
+) : (
+  <form class:list={['bk', compact && 'bk--compact']} data-booking={JSON.stringify(payload)} novalidate id={id} aria-describedby={`${id}-note`}>
+    <div class="bk__grid">
+      {f.checkIn && (<div class="field"><label for={`${id}-in`}>{t('checkIn')}</label><input id={`${id}-in`} name="checkIn" type="date" required={b.mode === 'engine'} data-ci /></div>)}
+      {f.checkOut && (<div class="field"><label for={`${id}-out`}>{t('checkOut')}</label><input id={`${id}-out`} name="checkOut" type="date" required={b.mode === 'engine'} data-co /></div>)}
+      {f.adults && (<div class="field"><label for={`${id}-ad`}>{t('adults')}</label><select id={`${id}-ad`} name="adults">{range(b.limits.maxAdults, 1).map((n) => <option value={n} selected={n === 2}>{n}</option>)}</select></div>)}
+      {f.children && b.limits.maxChildren > 0 && (<div class="field"><label for={`${id}-ch`}>{t('children')}</label><select id={`${id}-ch`} name="children">{range(b.limits.maxChildren).map((n) => <option value={n}>{n}</option>)}</select></div>)}
+      {f.accommodation && site.stays.length > 0 && (
+        <div class="field bk__wide"><label for={`${id}-acc`}>{t('accommodation')}</label>
+          <select id={`${id}-acc`} name="accommodation"><option value="">{t('anyAccommodation')}</option>{site.stays.map((s) => <option value={s.slug} selected={s.slug === stay}>{s.name}</option>)}</select>
+        </div>
+      )}
+      {f.promo && (<div class="field"><label for={`${id}-promo`}>{t('promo')}</label><input id={`${id}-promo`} name="promo" type="text" autocomplete="off" maxlength="40" /></div>)}
+    </div>
+    <p class="bk__error" role="alert" aria-live="assertive" data-error hidden></p>
+    <div class="bk__submit">
+      <p class="bk__nights micro muted" data-nights aria-live="polite"></p>
+      <button class="btn" type="submit"><span>{submitLabel}</span><span class="btn__arrow" aria-hidden="true"></span></button>
+    </div>
+    <p class="bk__note small muted" id={`${id}-note`}>{external ? t('bookingExternal') : t('bookingContact')}{b.note && <> {b.note}</>}</p>
+  </form>
+)}
+<style>
+  .bk { display: grid; gap: 28px; }
+  .bk__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 28px 32px; }
+  .bk--compact .bk__grid { grid-template-columns: 1fr 1fr; }
+  .bk__wide { grid-column: 1 / -1; }
+  .bk__submit { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .bk__error { color: #b5462f; font-size: var(--fs-small); }
+  [data-theme='dark'] .bk__error, .drawer .bk__error { color: #f0a08a; }
+  .bk__note { max-width: 60ch; }
+</style>

@@ -1,0 +1,104 @@
+---
+import type { SectionConfig, Image } from '../config/schema';
+import { site, t } from '../lib/context';
+import Section from './Section.astro';
+import Heading from '../components/Heading.astro';
+import Img from '../components/Img.astro';
+interface Props { section: SectionConfig }
+const { section } = Astro.props;
+const c = section.content as { eyebrow?: string; title: string; intro?: string; images: Image[] };
+const style = (section.variant as 'mosaic' | 'filmstrip' | 'stack' | undefined) ?? site.theme.gallery;
+---
+<Section section={section}>
+  <div class="wrap ga__head"><Heading eyebrow={c.eyebrow} title={c.title} intro={c.intro} size="l" /></div>
+  <div class:list={['ga', `ga--${style}`, style !== 'filmstrip' && 'wrap']} data-gallery>
+    <ul role="list" class="ga__list" data-hscroll-track={style === 'filmstrip' ? '' : undefined}>
+      {c.images.map((img, i) => (
+        <li class:list={['ga__item', `ga__item--${i % 7}`]}>
+          <button type="button" class="ga__btn media" data-index={i} aria-label={`${t('photo')} ${i + 1} ${t('of')} ${c.images.length}: ${img.alt}`}>
+            <Img image={img} sizes="(max-width: 760px) 90vw, 40vw" />
+          </button>
+        </li>
+      ))}
+    </ul>
+    <div class="lb" role="dialog" aria-modal="true" aria-label={t('gallery')} hidden data-lightbox>
+      <figure class="lb__fig"><img alt="" data-lb-img /><figcaption class="lb__cap" data-lb-cap></figcaption></figure>
+      <button type="button" class="lb__btn lb__prev" data-lb-prev aria-label={t('previous')}>←</button>
+      <button type="button" class="lb__btn lb__next" data-lb-next aria-label={t('next')}>→</button>
+      <button type="button" class="lb__close" data-lb-close aria-label={t('close')}>×</button>
+      <p class="lb__count micro num" data-lb-count></p>
+    </div>
+    <script type="application/json" data-gallery-items set:html={JSON.stringify(c.images.map((i) => ({ src: i.src, alt: i.alt, caption: i.caption ?? i.alt })))} />
+  </div>
+</Section>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((root) => {
+    const items: { src: string; alt: string; caption: string }[] = JSON.parse(root.querySelector('[data-gallery-items]')!.textContent!);
+    const lb = root.querySelector<HTMLElement>('[data-lightbox]')!;
+    const img = lb.querySelector<HTMLImageElement>('[data-lb-img]')!;
+    const cap = lb.querySelector<HTMLElement>('[data-lb-cap]')!;
+    const count = lb.querySelector<HTMLElement>('[data-lb-count]')!;
+    let i = 0, opener: HTMLElement | null = null;
+    const show = (n: number) => {
+      i = (n + items.length) % items.length;
+      img.classList.remove('is-in');
+      img.src = items[i].src; img.alt = items[i].alt; cap.textContent = items[i].caption;
+      count.textContent = `${i + 1} / ${items.length}`;
+      requestAnimationFrame(() => img.classList.add('is-in'));
+    };
+    const open = (n: number, from: HTMLElement) => { opener = from; document.body.appendChild(lb); lb.hidden = false; document.body.style.overflow = 'hidden'; show(n); lb.querySelector<HTMLElement>('[data-lb-close]')!.focus(); };
+    const close = () => { lb.hidden = true; document.body.style.overflow = ''; opener?.focus(); };
+    root.querySelectorAll<HTMLButtonElement>('[data-index]').forEach((b) => b.addEventListener('click', () => open(Number(b.dataset.index), b)));
+    lb.querySelector('[data-lb-prev]')!.addEventListener('click', () => show(i - 1));
+    lb.querySelector('[data-lb-next]')!.addEventListener('click', () => show(i + 1));
+    lb.querySelector('[data-lb-close]')!.addEventListener('click', close);
+    lb.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowLeft') show(i - 1);
+      if (e.key === 'ArrowRight') show(i + 1);
+      if (e.key === 'Tab') { const f = Array.from(lb.querySelectorAll<HTMLElement>('button')); const idx = f.indexOf(document.activeElement as HTMLElement); e.preventDefault(); f[(idx + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus(); }
+    });
+    let sx = 0;
+    lb.addEventListener('touchstart', (e) => (sx = e.touches[0].clientX), { passive: true });
+    lb.addEventListener('touchend', (e) => { const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1)); });
+  });
+</script>
+<style>
+  .ga__head { margin-bottom: clamp(36px, 5vw, 72px); }
+  .ga__btn { display: block; width: 100%; height: 100%; cursor: zoom-in; }
+  .ga__btn :global(img) { transition: transform 1.4s var(--ease-out), filter 0.6s; }
+  .ga__btn:hover :global(img) { transform: scale(1.04); }
+  /* mosaic */
+  .ga--mosaic .ga__list { display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: clamp(70px, 8vw, 130px); gap: clamp(10px, 1.4vw, 20px); }
+  .ga--mosaic .ga__item--0 { grid-column: 1 / span 7; grid-row: span 5; }
+  .ga--mosaic .ga__item--1 { grid-column: 8 / span 5; grid-row: span 3; }
+  .ga--mosaic .ga__item--2 { grid-column: 8 / span 3; grid-row: span 3; }
+  .ga--mosaic .ga__item--3 { grid-column: 11 / span 2; grid-row: span 4; }
+  .ga--mosaic .ga__item--4 { grid-column: 2 / span 4; grid-row: span 3; }
+  .ga--mosaic .ga__item--5 { grid-column: 6 / span 5; grid-row: span 4; }
+  .ga--mosaic .ga__item--6 { grid-column: 1 / span 5; grid-row: span 3; }
+  /* filmstrip */
+  .ga--filmstrip { overflow-x: auto; scrollbar-width: thin; }
+  .ga--filmstrip .ga__list { display: flex; gap: clamp(12px, 2vw, 28px); padding-inline: var(--gutter); width: max-content; scroll-snap-type: x mandatory; }
+  .ga--filmstrip .ga__item { width: clamp(260px, 34vw, 560px); aspect-ratio: 4 / 5; scroll-snap-align: center; }
+  .ga--filmstrip .ga__item:nth-child(3n + 2) { aspect-ratio: 16 / 11; width: clamp(320px, 48vw, 760px); align-self: center; }
+  /* stack */
+  .ga--stack .ga__list { display: grid; grid-template-columns: repeat(6, 1fr); gap: clamp(16px, 3vw, 48px); }
+  .ga--stack .ga__item { grid-column: span 3; aspect-ratio: 4 / 5; }
+  .ga--stack .ga__item:nth-child(3n + 1) { grid-column: 2 / span 4; aspect-ratio: 16 / 10; }
+  @media (max-width: 760px) {
+    .ga--mosaic .ga__list, .ga--stack .ga__list { grid-template-columns: 1fr 1fr; grid-auto-rows: auto; }
+    .ga--mosaic .ga__item, .ga--stack .ga__item { grid-column: span 1 !important; grid-row: auto !important; aspect-ratio: 4 / 5; }
+    .ga--mosaic .ga__item:nth-child(3n + 1), .ga--stack .ga__item:nth-child(3n + 1) { grid-column: 1 / -1 !important; aspect-ratio: 16 / 10; }
+  }
+  .lb { position: fixed; inset: 0; z-index: 1200; background: rgb(10 10 10 / 0.95); color: #fff; display: grid; place-items: center; }
+  .lb[hidden] { display: none; }
+  .lb__fig { margin: 0; display: grid; gap: 14px; justify-items: center; max-width: 88vw; }
+  .lb__fig img { max-height: 80vh; width: auto; object-fit: contain; opacity: 0; transform: scale(0.985); transition: opacity 0.6s, transform 0.9s var(--ease-out); }
+  .lb__fig img.is-in { opacity: 1; transform: none; }
+  .lb__cap { color: rgb(255 255 255 / 0.7); font-size: var(--fs-small); }
+  .lb__btn, .lb__close { position: absolute; width: 56px; height: 56px; font-size: 1.4rem; color: #fff; }
+  .lb__prev { left: 12px; top: 50%; } .lb__next { right: 12px; top: 50%; }
+  .lb__close { right: 16px; top: 16px; font-size: 2rem; }
+  .lb__count { position: absolute; left: 24px; top: 30px; letter-spacing: 0.2em; }
+</style>
