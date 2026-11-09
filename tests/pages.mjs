@@ -34,8 +34,8 @@ try{
   for(const file of files){
    const route=`/resorts/${id}/`+file.replace(/index\.html$/,'');
    await page.goto(origin+route+'?webgl=0',{waitUntil:'load'});
-   // Scroll every page to mount lazy 3D, panorama and villa views and fetch lazy images.
-   await page.evaluate(async()=>{for(let y=0;y<document.body.scrollHeight;y+=700){window.scrollTo(0,y);await new Promise(r=>setTimeout(r,20));}});
+   // Fetch every image without introducing artificial scrolling into the URL audit.
+   await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.querySelectorAll('img').forEach(img => { img.loading = 'eager'; }); });
    await page.waitForTimeout(350);
    const found=await page.evaluate(()=>{
     const result=[];
@@ -50,12 +50,15 @@ try{
    const seo=await page.locator('meta[name="description"]').getAttribute('content');
    assert.ok(seo.length>=120&&seo.length<=160,`${id} ${file}: SEO length ${seo.length}`);
   }
-  for(const u of urls){assert.ok(u.startsWith(`/resorts/${id}/`),`Unbased URL: ${u}`);const res=await fetch(origin+u);assert.equal(res.status,200,u);}
+  for(const u of urls){assert.ok(u.startsWith(`/resorts/${id}/`),`Unbased URL: ${u}`);const res=await fetch(origin+u);assert.equal(res.status,200,u);await res.arrayBuffer();}
   // Mount the actual world, villa and panorama with the same base path.
   for (const route of (id === 'coastal' ? ['map/', 'stays/cliff-villa/', 'discover/'] : id === 'mountain' ? ['mapa/', 'acomodacoes/cabana-da-crista/'] : ['map/', 'sanctuary/'])) {
     await page.goto(`${origin}/resorts/${id}/${route}`, { waitUntil: 'load' });
-    await page.evaluate(() => document.querySelector('[data-villa-explorer], [data-panorama], [data-world]')?.scrollIntoView());
-    await page.waitForTimeout(1200);
+    for (const selector of ['main [data-world]', 'main [data-villa-explorer]', 'main [data-panorama]']) {
+      if (!await page.locator(selector).count()) continue;
+      await page.locator(selector).first().scrollIntoViewIfNeeded();
+      await page.waitForFunction(sel => document.querySelector(sel)?.dataset.state === 'ready', selector, { timeout: 45000 });
+    }
   }
   console.log(`${id}: ${files.length} pages, ${urls.size} local URLs checked; interactive assets loaded`);
   await ctx.close();

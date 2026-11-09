@@ -7,7 +7,7 @@ const primary = navItems('primary');
 const secondary = navItems('secondary');
 const mapPage = enabledPages.find((p) => p.id === 'map');
 const spatial = site.theme.nav.mode === 'spatial' && mapPage && site.pois.length > 0;
-const home = { id: 'home', label: t('home'), href: '/', image: site.hero.image.src };
+const home = { id: 'home', label: t('home'), href: pageHref(''), image: site.hero.image.src };
 const all = [home, ...primary];
 ---
 <div class="menu" id="site-menu" role="dialog" aria-modal="true" aria-label={t('menu')} data-menu hidden>
