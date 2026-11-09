@@ -1,8 +1,9 @@
 /** Resolves internal link tokens against the enabled pages/items. Returns null when the target is unavailable. */
+import { withBase } from './base';
 import type { ResortConfig } from '../config/schema';
 
 export function pageHref(path: string) {
-  return path === '' ? '/' : `/${path.replace(/^\/|\/$/g, '')}/`;
+  return withBase(path === '' ? '/' : `/${path.replace(/^\/|\/$/g, '')}/`);
 }
 
 export function createLinker(cfg: ResortConfig) {
@@ -15,7 +16,7 @@ export function createLinker(cfg: ResortConfig) {
   function resolve(href: string | undefined | null): string | null {
     if (!href) return null;
     if (/^(https?:|mailto:|tel:|#)/.test(href)) return href;
-    if (href.startsWith('/')) return href;
+    if (href.startsWith('/')) return withBase(href);
     const [kind, ref] = href.split(':');
     switch (kind) {
       case 'page': {
@@ -24,9 +25,9 @@ export function createLinker(cfg: ResortConfig) {
         return p ? pageHref(p.path) + (hash ? `#${hash}` : '') : null;
       }
       case 'stay':
-        return stayBase && cfg.stays.some((s) => s.slug === ref) ? `/${stayBase}/${ref}/` : null;
+        return stayBase && cfg.stays.some((s) => s.slug === ref) ? withBase(`/${stayBase}/${ref}/`) : null;
       case 'experience':
-        return expBase && cfg.experiences.some((s) => s.slug === ref) ? `/${expBase}/${ref}/` : null;
+        return expBase && cfg.experiences.some((s) => s.slug === ref) ? withBase(`/${expBase}/${ref}/`) : null;
       case 'dining':
         return diningPage && cfg.dining.some((d) => d.slug === ref) ? `${pageHref(diningPage.path)}#${ref}` : null;
       case 'poi':

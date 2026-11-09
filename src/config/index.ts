@@ -2,6 +2,7 @@
  * Loads the active preset (RESORT_PRESET env var, default "coastal"),
  * validates it with zod and cross-checks references. Build-time only.
  */
+import { resolveAssets } from '../lib/base';
 import { ResortConfigZ, type ResortConfig } from './schema';
 import { sectionContentSchemas } from '../sections/schemas';
 
@@ -23,7 +24,7 @@ function load(): ResortConfig {
   }
   const cfg = parsed.data;
   crossCheck(cfg);
-  return cfg;
+  return resolveAssets(cfg);
 }
 
 function crossCheck(cfg: ResortConfig) {

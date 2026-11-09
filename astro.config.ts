@@ -9,7 +9,8 @@ const preset = (process.env.RESORT_PRESET || 'coastal').trim();
 const cfg = (await import(`./src/presets/${preset}/index.ts`)).default as { seo: { siteUrl: string; robots?: string } };
 
 export default defineConfig({
-  site: cfg.seo.siteUrl,
+  site: process.env.SITE_URL || (process.env.BASE_PATH ? 'https://aruanmf446-hub.github.io' : cfg.seo.siteUrl),
+  base: process.env.BASE_PATH || '/',
   output: 'static',
   trailingSlash: 'ignore',
   build: { format: 'directory', inlineStylesheets: 'auto' },
