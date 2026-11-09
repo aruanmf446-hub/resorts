@@ -59,6 +59,16 @@ try{
   }
   console.log(`${id}: ${files.length} pages, ${urls.size} local URLs checked; interactive assets loaded`);
   await ctx.close();
+  for (const mode of ['no-js', 'reduced', 'failed-bundle']) {
+    const fallback = await browser.newContext({ javaScriptEnabled: mode !== 'no-js', reducedMotion: mode === 'reduced' ? 'reduce' : 'no-preference', viewport: { width: mode === 'reduced' ? 390 : 1440, height: 900 } });
+    if (mode === 'failed-bundle') await fallback.route('**/_astro/*.js', route => route.abort());
+    const view = await fallback.newPage();
+    await view.goto(`${origin}/resorts/${id}/?webgl=0`, { waitUntil: 'load' });
+    if (mode === 'failed-bundle') await view.waitForTimeout(3700);
+    assert.ok(await view.locator('[data-reveal]').evaluateAll(elements => elements.every(el => getComputedStyle(el).visibility !== 'hidden')), `${id}: visible content in ${mode}`);
+    if (mode !== 'failed-bundle') assert.equal(await view.locator('.chapters--pinned').count(), 0, `${id}: stacked chapters in ${mode}`);
+    await fallback.close();
+  }
  }
  assert.deepEqual(errors,[]);
  console.log('GitHub Pages subpath smoke checks passed');
