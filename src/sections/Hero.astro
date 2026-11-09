@@ -28,7 +28,7 @@ const frames = [h.image, ...h.frames];
     </div>
   </Section>
 ) : (
-  <Section section={section} flush class:list={['hero', 'hero--home', `hero--${mode}`, `hero--${comp}`]} defaultTheme="dark" label={site.identity.name}>
+  <Section section={section} flush class:list={['hero', 'hero--home', `hero--${mode}`, `hero--${comp}`]} defaultTheme={comp === 'split' ? 'light' : 'dark'} label={site.identity.name}>
     <div class="hero__media">
       {mode === 'immersive3d' && <WorldMap variant="hero" intro id="hero-world" />}
       {mode === 'video' && h.video && (

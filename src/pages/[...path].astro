@@ -23,13 +23,17 @@ export function getStaticPaths() {
 type Props = { kind: 'page'; page: PageConfig } | { kind: 'stay'; stay: Stay } | { kind: 'experience'; experience: Experience };
 const props = Astro.props as Props;
 let overlay = false;
+let needsH1 = false;
 if (props.kind === 'page') {
-  const first = activeSections(props.page.sections)[0];
+  const act = activeSections(props.page.sections);
+  needsH1 = !act.some((s) => s.type === 'hero' || s.type === 'contact' || (s.type === 'planner' && s.variant === 'full') || (s.type === 'booking' && s.variant === 'page') || (s.type === 'resortMap' && s.variant === 'full'));
+  const first = act[0];
   overlay = !!first && ((first.type === 'hero' && (first.variant === 'page' || site.theme.heroComposition !== 'split')) || (first.type === 'resortMap' && first.variant === 'full'));
 }
 ---
 {props.kind === 'page' && (
   <Base title={props.page.path === '' ? undefined : props.page.title} description={props.page.description} image={props.page.ogImage} pageId={props.page.id} heroOverlay={overlay}>
+    {needsH1 && <h1 class="sr-only">{props.page.title}</h1>}
     <Sections sections={props.page.sections} />
   </Base>
 )}

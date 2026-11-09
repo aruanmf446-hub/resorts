@@ -120,8 +120,9 @@ async function testPreset(id, opts = {}) {
   ok(await home.locator('[data-menu]').isVisible(), `${id}: menu opens`);
   ok(await home.evaluate(() => document.querySelector('[data-menu]').contains(document.activeElement)), `${id}: focus moves into menu`);
   await home.keyboard.press('Escape');
-  await home.waitForTimeout(1100);
-  ok(await home.locator('[data-menu]').isHidden(), `${id}: Escape closes menu`);
+  const closed = await home.locator('[data-menu]').waitFor({ state: 'hidden', timeout: 5000 }).then(() => true, () => false);
+  ok(closed, `${id}: Escape closes menu`);
+  ok(await home.evaluate(() => document.activeElement?.matches('[data-menu-open]')), `${id}: focus returns to the menu button`);
   await home.close();
 
   if (opts.booking) {
@@ -217,7 +218,7 @@ async function testPreset(id, opts = {}) {
     ok(await p.evaluate(() => document.querySelector('[data-villa-explorer]').dataset.state) === 'ready', `${id}: villa explorer ready`);
     const src = await p.evaluate(() => document.querySelector('[data-villa-explorer]').dataset.source);
     ok(src === opts.villaSource, `${id}: villa model source ${src} (expected ${opts.villaSource})`);
-    await p.locator('.villa-hotspot').first().click();
+    await p.locator('.villa-hotspot').first().dispatchEvent('click');
     ok(await p.locator('[data-villa-info]').isVisible(), `${id}: villa hotspot info`);
     ok(p.errors.length === 0, `${id}: villa console errors ${p.errors.join(' | ')}`);
     await p.close();

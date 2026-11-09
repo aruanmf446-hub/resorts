@@ -237,3 +237,18 @@ export function clientStrings(locale: Locale, keys: UiKey[]) {
   const t = useT(locale);
   return Object.fromEntries(keys.map((k) => [k, t(k)]));
 }
+
+/** Labels for enumerated values (map categories, wellness kinds, dining kinds, booking offers). */
+const enumLabels: Record<string, Record<string, string>> = {
+  en: {
+    stay: 'Stay', dining: 'Dining', wellness: 'Wellness', water: 'Water', nature: 'Nature', leisure: 'Leisure', arrival: 'Arrival', sport: 'Sport', culture: 'Culture',
+    treatment: 'Treatments', ritual: 'Rituals', yoga: 'Movement', meditation: 'Meditation', space: 'Spaces',
+    restaurant: 'Restaurant', bar: 'Bar', lounge: 'Lounge', private: 'Private dining', thematic: 'Thematic',
+  },
+  'pt-BR': {
+    stay: 'Hospedagem', dining: 'Gastronomia', wellness: 'Bem-estar', water: 'Água', nature: 'Natureza', leisure: 'Lazer', arrival: 'Chegada', sport: 'Esporte', culture: 'Cultura',
+    treatment: 'Tratamentos', ritual: 'Rituais', yoga: 'Movimento', meditation: 'Meditação', space: 'Espaços',
+    restaurant: 'Restaurante', bar: 'Bar', lounge: 'Lounge', private: 'Jantar privativo', thematic: 'Temático',
+  },
+};
+export const enumLabel = (locale: Locale, key: string) => enumLabels[locale]?.[key] ?? enumLabels.en[key] ?? key;

@@ -1,12 +1,12 @@
 ---
 /** Link button resolved through the linker. Renders nothing if the target is disabled — no broken links. */
-import { link } from '../lib/context';
+import { link, bookingEnabled } from '../lib/context';
 import { isExternal } from '../lib/links';
 interface Props { href?: string; label: string; class?: string; variant?: 'default' | 'ghost'; booking?: boolean }
 const { href, label, class: cls, variant = 'default', booking } = Astro.props;
 const resolved = link.resolve(href);
 const ext = resolved ? isExternal(resolved) : false;
-const isBooking = href === 'booking';
+const isBooking = href === 'booking' && bookingEnabled;
 ---
 {resolved && (
   <a
@@ -14,7 +14,7 @@ const isBooking = href === 'booking';
     class:list={['btn', variant === 'ghost' && 'btn--ghost', cls]}
     target={ext ? '_blank' : undefined}
     rel={ext ? 'noopener' : undefined}
-    data-book-open={isBooking || booking ? '' : undefined}
+    data-book-open={isBooking || (booking && bookingEnabled) ? '' : undefined}
   >
     <span>{label}</span><span class="btn__arrow" aria-hidden="true"></span>
   </a>

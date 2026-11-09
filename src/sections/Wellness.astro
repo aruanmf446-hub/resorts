@@ -1,6 +1,7 @@
 ---
 import type { SectionConfig } from '../config/schema';
 import { site, t } from '../lib/context';
+import { enumLabel } from '../i18n/ui';
 import Section from './Section.astro';
 import Heading from '../components/Heading.astro';
 import Img from '../components/Img.astro';
@@ -29,8 +30,8 @@ const kinds = w ? [...new Set(w.rituals.map((r) => r.kind))] : [];
             </div>
           </div>
           {kinds.map((k) => (
-            <section class="wl__group" aria-label={k}>
-              <h3 class="micro muted wl__kind">{k}</h3>
+            <section class="wl__group" aria-label={enumLabel(site.locale, k)}>
+              <h3 class="micro muted wl__kind">{enumLabel(site.locale, k)}</h3>
               <ul role="list">
                 {w.rituals.filter((r) => r.kind === k).map((r) => (
                   <li class="wl__row" data-reveal="fade"><span class="t-m">{r.name}</span><span class="muted">{r.summary}</span><span class="micro num">{r.duration}</span></li>

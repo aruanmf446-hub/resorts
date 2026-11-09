@@ -32,7 +32,7 @@ function serve(dir, port) {
 
 const jobs = {
   coastal: { mapPath: '/map/', film: { name: 'flight', time: 'day', from: [70, 46, 80], target: [0, 2, 4], seconds: 10, orbit: 0.9, descend: 14 } },
-  mountain: { mapPath: '/mapa/', film: { name: 'hero', time: 'dusk', from: [70, 58, 80], target: [0, 6, 0], seconds: 10, orbit: 0.7, descend: 18 } },
+  mountain: { mapPath: '/mapa/', film: { name: 'hero', time: 'dusk', from: [30, 42, 40], target: [2, 4, -4], seconds: 10, orbit: 0.8, descend: 8 } },
   wellness: { mapPath: '/map/' },
 };
 

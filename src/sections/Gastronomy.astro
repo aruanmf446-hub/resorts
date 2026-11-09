@@ -1,6 +1,7 @@
 ---
 import type { SectionConfig } from '../config/schema';
 import { site, t } from '../lib/context';
+import { enumLabel } from '../i18n/ui';
 import Section from './Section.astro';
 import Heading from '../components/Heading.astro';
 import Img from '../components/Img.astro';
@@ -23,7 +24,7 @@ const index = section.variant === 'index';
           <article class:list={['gs__venue', i % 2 && 'gs__venue--alt']} id={v.slug}>
             <div class="media gs__media" data-reveal="mask"><Img image={v.cover} sizes="(max-width: 900px) 100vw, 55vw" /></div>
             <div class="gs__text">
-              <p class="micro muted">{v.kind}{v.cuisine && ` · ${v.cuisine}`}</p>
+              <p class="micro muted">{enumLabel(site.locale, v.kind)}{v.cuisine && ` · ${v.cuisine}`}</p>
               <h3 class="t-l" data-reveal="lines">{v.name}</h3>
               <p class="lede">{v.summary}</p>
               {index && v.description.map((p) => <p class="prose">{p}</p>)}

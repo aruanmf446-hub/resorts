@@ -4,7 +4,7 @@
  * list render first (and remain if WebGL is unavailable); the 3D world mounts on top.
  */
 import { site, t, poiPayload, categoryLabel } from '../lib/context';
-import { clientStrings } from '../i18n/ui';
+import { clientStrings, enumLabel } from '../i18n/ui';
 import Img from './Img.astro';
 interface Props { variant?: 'embed' | 'full' | 'hero'; intro?: boolean; id?: string }
 const { variant = 'embed', intro = false, id = 'world' } = Astro.props;
@@ -46,12 +46,12 @@ const webgl = w.enabled && (w.mode === 'procedural' || w.mode === 'model');
       <div class="wm__ui">
         {w.atmosphere.times.length > 1 && (
           <div class="wm__ctl" role="group" aria-label={t('atmosphere')} data-ctl-time>
-            {w.atmosphere.times.map((tm) => <button type="button" data-time={tm} aria-pressed={String(tm === w.atmosphere.defaultTime)}>{t(tm)}</button>)}
+            {w.atmosphere.times.map((tm) => <button type="button" data-time={tm} aria-pressed={tm === w.atmosphere.defaultTime ? 'true' : 'false'}>{t(tm)}</button>)}
           </div>
         )}
         {w.atmosphere.seasons.length > 1 && (
           <div class="wm__ctl" role="group" aria-label={t('season')} data-ctl-season>
-            {w.atmosphere.seasons.map((s) => <button type="button" data-season={s} aria-pressed={String(s === (w.atmosphere.defaultSeason ?? w.atmosphere.seasons[0]))}>{t(s)}</button>)}
+            {w.atmosphere.seasons.map((s) => <button type="button" data-season={s} aria-pressed={s === (w.atmosphere.defaultSeason ?? w.atmosphere.seasons[0]) ? 'true' : 'false'}>{t(s)}</button>)}
           </div>
         )}
         <button type="button" class="wm__reset" data-reset>{t('resetView')}</button>
@@ -63,7 +63,7 @@ const webgl = w.enabled && (w.mode === 'procedural' || w.mode === 'model');
         {cats.length > 1 && (
           <div class="wm__filters" role="group" aria-label={t('places')}>
             <button type="button" data-filter="" aria-pressed="true">{t('all')}</button>
-            {cats.map((c) => <button type="button" data-filter={c} aria-pressed="false">{c}</button>)}
+            {cats.map((c) => <button type="button" data-filter={c} aria-pressed="false">{enumLabel(site.locale, c)}</button>)}
           </div>
         )}
         <ol role="list" class="wm__list">
@@ -82,7 +82,7 @@ const webgl = w.enabled && (w.mode === 'procedural' || w.mode === 'model');
         {pois.map((p) => (
           <article data-panel-for={p.id} hidden>
             {p.image && <div class="media wm__panel-media"><img src={p.image.src} alt={p.image.alt} loading="lazy" width="800" height="500" /></div>}
-            <p class="eyebrow">{p.category}</p>
+            <p class="eyebrow">{enumLabel(site.locale, p.category)}</p>
             <h3 class="t-m">{p.name}</h3>
             <p class="muted">{p.summary}</p>
             {p.href && <a class="btn" href={p.href}><span>{t('seePlace')}</span><span class="btn__arrow" aria-hidden="true"></span></a>}
