@@ -22,7 +22,7 @@ ul[role='list'], ol[role='list'] { list-style: none; }
   --ease-glide: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --gutter: clamp(16px, 4vw, 64px);
-  --space-section: calc(clamp(88px, 13vw, 220px) * var(--rhythm, 1));
+  --space-section: calc(clamp(72px, 10vw, 160px) * var(--rhythm, 1));
   --space-block: calc(clamp(40px, 6vw, 96px) * var(--rhythm, 1));
   --header-h: 84px;
 
@@ -238,7 +238,7 @@ html[data-buttons='solid'] [data-theme='dark'] .btn:hover { background: var(--c-
 /* ---------------------------------------------------------------- */
 
 html.motion-ready [data-reveal]:not(.is-revealed) { visibility: hidden; }
-html.motion-ready [data-reveal='mask'] { clip-path: inset(0 0 100% 0); }
+
 .line-mask { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
 .line-mask > * { display: block; }
 
