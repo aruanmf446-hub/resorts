@@ -37,7 +37,7 @@ export class World {
   camera: THREE.PerspectiveCamera;
   controls?: OrbitControls;
   field: HeightField;
-  private clock = new THREE.Clock();
+  private clock = new THREE.Timer();
   private raf = 0;
   private running = false;
   private visible = true;
@@ -143,7 +143,7 @@ export class World {
       void this.loadModel();
     }
     this.scene.add(this.sky.mesh);
-    this.scene.fog = new THREE.FogExp2('#dde8ee', 0.004 + d.atmosphere.fog * 0.009);
+    this.scene.fog = new THREE.FogExp2('#dde8ee', 0.003 + d.atmosphere.fog * 0.006);
 
     if (d.water.kind !== 'none' && (!useModel || d.model?.keepWater)) {
       this.water = buildWater({ level: d.water.level, shallow: d.water.shallow, deep: d.water.deep, heightTex: heightTexture(this.field), infinite: island });
@@ -377,7 +377,7 @@ export class World {
   start() {
     if (this.running || this.disposed || !this.visible || document.hidden) return;
     this.running = true;
-    this.clock.getDelta();
+    this.clock.update();
     const loop = () => {
       if (!this.running) return;
       this.raf = requestAnimationFrame(loop);
@@ -394,8 +394,9 @@ export class World {
   onFrame?: () => void;
 
   private tick() {
+    this.clock.update();
     const dt = Math.min(this.clock.getDelta(), 0.1);
-    const t = this.clock.elapsedTime;
+    const t = this.clock.getElapsed();
     const animated = !this.opts.reducedMotion;
     if (animated) {
       if (this.water) this.water.uniforms.uTime.value = t;

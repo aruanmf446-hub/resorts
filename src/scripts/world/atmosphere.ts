@@ -16,9 +16,9 @@ export type Lighting = {
 };
 
 export const TIMES: Record<TimeName, Lighting> = {
-  dawn: { sunElev: 7, sunAzim: 70, sun: '#ffc7a3', sunI: 1.9, hemiSky: '#c9d3e6', hemiGround: '#8a7d70', hemiI: 0.9, skyTop: '#8aa2c2', horizon: '#f4d6c4', night: 0.1, exposure: 1.0 },
+  dawn: { sunElev: 9, sunAzim: 70, sun: '#ffd2b4', sunI: 2.2, hemiSky: '#d2dbeb', hemiGround: '#8a7d70', hemiI: 1.15, skyTop: '#8aa2c2', horizon: '#f4d6c4', night: 0.1, exposure: 1.0 },
   day: { sunElev: 52, sunAzim: 140, sun: '#fff3df', sunI: 2.6, hemiSky: '#d5e6fb', hemiGround: '#827d68', hemiI: 1.05, skyTop: '#5f90c2', horizon: '#dde8ee', night: 0, exposure: 1.0 },
-  dusk: { sunElev: 6, sunAzim: 250, sun: '#ffa86f', sunI: 2.2, hemiSky: '#a2a7c8', hemiGround: '#5e4c46', hemiI: 0.75, skyTop: '#46557c', horizon: '#f0a67f', night: 0.45, exposure: 1.05 },
+  dusk: { sunElev: 9, sunAzim: 250, sun: '#ffbf8f', sunI: 2.5, hemiSky: '#bcc4dc', hemiGround: '#7d6c5f', hemiI: 1.15, skyTop: '#59709c', horizon: '#f2c0a0', night: 0.4, exposure: 1.05 },
   night: { sunElev: 38, sunAzim: 200, sun: '#9fb4ff', sunI: 0.45, hemiSky: '#273760', hemiGround: '#0b0d14', hemiI: 0.45, skyTop: '#050a16', horizon: '#1d2a44', night: 1, exposure: 1.15 },
 };
 

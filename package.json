@@ -16,7 +16,7 @@
     "build:mountain": "RESORT_PRESET=mountain astro build --outDir dist/mountain",
     "build:wellness": "RESORT_PRESET=wellness astro build --outDir dist/wellness",
     "build:all": "npm run build:coastal && npm run build:mountain && npm run build:wellness",
-    "test:unit": "node --test tests/unit/",
+    "test:unit": "tsx --test tests/unit/*.test.ts",
     "test:e2e": "node tests/e2e.mjs",
     "test": "npm run test:unit && npm run build:all && npm run test:e2e",
     "assets:art": "node scripts/generate-art.mjs",
@@ -39,7 +39,10 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "@types/three": "^0.187.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

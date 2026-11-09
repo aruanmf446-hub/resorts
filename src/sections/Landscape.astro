@@ -14,7 +14,7 @@ const c = section.content as { eyebrow?: string; title: string; chapters: { titl
         <div class="ls__media" data-chapter-media style={`z-index:${i + 1}`}><Img image={ch.image} /><div class="ls__cap wrap"><h3 class="t-xl">{ch.title}</h3><p class="lede">{ch.text}</p></div></div>
       ))}
       <div class="ls__scrim" aria-hidden="true"></div>
-      <div class="ls__head wrap">
+      <div class="ls__head">
         {c.eyebrow && <p class="eyebrow">{c.eyebrow}</p>}
         <h2 class="t-l" set:html={rich(c.title)} />
       </div>
@@ -31,28 +31,28 @@ const c = section.content as { eyebrow?: string; title: string; chapters: { titl
     </div>
   </div>
 </Section>
-<style>
-  .ls { position: relative; color: #fbf8f2; }
-  .ls__stage { position: relative; height: 100svh; overflow: hidden; }
-  .ls__media { position: absolute; inset: 0; }
-  .ls__media :global(img) { width: 100%; height: 100%; object-fit: cover; }
-  .ls__scrim { position: absolute; inset: 0; z-index: 20; background: linear-gradient(180deg, rgb(0 0 0 / 0.42), transparent 30%, transparent 55%, rgb(0 0 0 / 0.5)); }
-  .ls__head { position: absolute; top: calc(var(--header-h) + 3vh); left: 0; right: 0; z-index: 21; display: grid; gap: 14px; }
+<style is:global>
+  /* Static (default: mobile, reduced motion, no JS): chapters stack with captions. */
+  .ls { position: relative; color: #fbf8f2; background: var(--c-dark); }
+  .ls__stage { position: relative; display: grid; }
+  .ls__head { order: -1; padding: 100px var(--gutter) 40px; display: grid; gap: 14px; position: relative; z-index: 2; }
   .ls__head .t-l { max-width: 18ch; }
-  .ls__texts { position: absolute; left: 0; right: 0; bottom: 9vh; z-index: 21; display: grid; }
+  .ls__media { position: relative; height: 72svh; overflow: hidden; }
+  .ls__media img { width: 100%; height: 100%; object-fit: cover; }
+  .ls__media::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgb(0 0 0 / 0.55)); }
+  .ls__cap { display: grid; gap: 10px; position: absolute; left: 0; right: 0; bottom: 40px; z-index: 2; }
+  .ls__cap .lede { color: rgb(255 255 255 / 0.88); }
+  .ls__scrim, .ls__texts, .ls__progress { display: none; }
+
+  /* Pinned cinematic mode (added by motion.ts on capable screens) */
+  .ls.chapters--pinned .ls__stage { display: block; height: 100svh; overflow: hidden; }
+  .ls.chapters--pinned .ls__media { position: absolute; inset: 0; height: auto; }
+  .ls.chapters--pinned .ls__media::before, .ls.chapters--pinned .ls__cap { display: none; }
+  .ls.chapters--pinned .ls__scrim { display: block; position: absolute; inset: 0; z-index: 20; background: linear-gradient(180deg, rgb(0 0 0 / 0.42), transparent 30%, transparent 55%, rgb(0 0 0 / 0.5)); }
+  .ls.chapters--pinned .ls__head { position: absolute; top: calc(var(--header-h) + 3vh); left: 0; right: 0; padding: 0 var(--gutter); z-index: 21; }
+  .ls.chapters--pinned .ls__texts { display: grid; position: absolute; left: 0; right: 0; bottom: 9vh; z-index: 21; }
   .ls__text { grid-area: 1 / 1; display: grid; gap: 14px; }
   .ls__text .lede { color: rgb(255 255 255 / 0.85); }
-  .ls__progress { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 4vh; height: 1px; background: rgb(255 255 255 / 0.25); z-index: 21; }
+  .ls.chapters--pinned .ls__progress { display: block; position: absolute; left: var(--gutter); right: var(--gutter); bottom: 4vh; height: 1px; background: rgb(255 255 255 / 0.25); z-index: 21; }
   .ls__progress span { display: block; height: 100%; background: #fff; transform-origin: left; transform: scaleX(0); }
-  /* Without pinning (mobile / reduced motion): chapters stack. */
-  .ls__cap { display: none; }
-  .ls:not(:global(.chapters--pinned)) .ls__stage { height: auto; display: grid; }
-  .ls:not(:global(.chapters--pinned)) .ls__cap { display: grid; gap: 10px; position: absolute; left: 0; right: 0; bottom: 40px; z-index: 2; }
-  .ls:not(:global(.chapters--pinned)) .ls__cap .lede { color: rgb(255 255 255 / 0.88); }
-  .ls:not(:global(.chapters--pinned)) .ls__media::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgb(0 0 0 / 0.55)); }
-  .ls:not(:global(.chapters--pinned)) .ls__head { order: -1; position: relative; top: auto; padding-block: 100px 40px; background: var(--c-dark); }
-  .ls:not(:global(.chapters--pinned)) .ls__scrim { display: none; }
-  .ls:not(:global(.chapters--pinned)) .ls__media { position: relative; inset: auto; height: 70svh; z-index: auto !important; }
-  .ls:not(:global(.chapters--pinned)) .ls__texts { display: none; }
-  .ls:not(:global(.chapters--pinned)) .ls__progress { display: none; }
 </style>

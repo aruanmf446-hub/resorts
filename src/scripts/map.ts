@@ -8,6 +8,7 @@ import type { WorldData, PoiData, TimeName, SeasonName } from './world/types';
 type Payload = { data: WorldData; pois: (PoiData & { href: string | null })[]; interactive: boolean; intro: boolean; variant: string; strings: Record<string, string> };
 
 export function mountWorldMaps() {
+  if (new URLSearchParams(location.search).has('capture')) document.documentElement.classList.add('capture');
   document.querySelectorAll<HTMLElement>('[data-world]').forEach((root) => {
     if (root.dataset.mounted) return;
     root.dataset.mounted = '1';

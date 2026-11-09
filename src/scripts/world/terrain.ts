@@ -56,7 +56,7 @@ export function createHeightField(cfg: WorldData, pois: PoiData[]) {
     .filter((p) => LAND_STRUCTURES.has(p.structure.type))
     .map((p) => {
       const [x, z] = p.position;
-      const r = 3 + p.structure.size * 2 + (p.structure.count > 1 ? p.structure.spread * 0.75 : 0);
+      const r = 1.8 + p.structure.size * 1.6 + (p.structure.count > 1 ? p.structure.spread * 0.55 : 0);
       return { x, z, r, h: Math.max(raw(x, z), level + 1.1) };
     });
 
@@ -64,7 +64,7 @@ export function createHeightField(cfg: WorldData, pois: PoiData[]) {
     let h = raw(x, z);
     for (const p of pads) {
       const d = Math.hypot(x - p.x, z - p.z);
-      if (d < p.r + 6) h = lerp(h, p.h, 1 - smoothstep(p.r, p.r + 6, d));
+      if (d < p.r + 9) h = lerp(h, p.h, 1 - smoothstep(p.r, p.r + 9, d));
     }
     return h;
   };

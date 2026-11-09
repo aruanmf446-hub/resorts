@@ -68,7 +68,7 @@ export function buildVegetation(cfg: WorldData, field: HeightField, pois: PoiDat
   const v = cfg.vegetation;
   if (v.kind === 'none' || v.density <= 0) return null;
   const rnd = mulberry32(cfg.seed * 31 + 7);
-  const target = Math.round((quality === 'high' ? 1500 : 600) * v.density);
+  const target = Math.round((quality === 'high' ? 1100 : 480) * v.density);
   const geo = treeGeometry(v.kind);
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true });
   const uTime = { value: 0 };
@@ -91,7 +91,7 @@ export function buildVegetation(cfg: WorldData, field: HeightField, pois: PoiDat
   mesh.castShadow = quality === 'high';
   mesh.receiveShadow = false;
 
-  const blockers = pois.filter((p) => p.structure.type !== 'none').map((p) => ({ x: p.position[0], z: p.position[1], r: 4 + p.structure.spread * (p.structure.count > 1 ? 0.9 : 0.3) + p.structure.size * 2 }));
+  const blockers = pois.filter((p) => p.structure.type !== 'none').map((p) => ({ x: p.position[0], z: p.position[1], r: 3.5 + p.structure.spread * (p.structure.count > 1 ? 0.9 : 0.3) + p.structure.size * 2 }));
   const m = new THREE.Matrix4();
   const q = new THREE.Quaternion();
   const s = new THREE.Vector3();

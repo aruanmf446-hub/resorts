@@ -56,17 +56,18 @@ export function buildWater(opts: {
         // animated micro-normals
         vec2 p = vW.xz * 0.35;
         float t = uTime * 0.6;
-        float n1 = noise(p + vec2(t, t * 0.6));
-        float n2 = noise(p * 2.3 - vec2(t * 0.7, -t));
-        vec3 N = normalize(vec3((n1 - 0.5) * 0.35 + (n2 - 0.5) * 0.2, 1.0, (n2 - 0.5) * 0.35));
+        float n1 = noise(p * 0.6 + vec2(t * 0.3, t * 0.2));
+        float wx = sin(p.x * 1.7 + t * 1.3 + n1 * 3.0) * 0.5 + sin(p.x * 3.1 - p.y * 1.3 + t * 1.9) * 0.25;
+        float wz = cos(p.y * 1.5 - t * 1.1 + n1 * 2.0) * 0.5 + cos(p.y * 2.7 + p.x * 1.1 - t * 1.6) * 0.25;
+        vec3 N = normalize(vec3(wx * 0.22, 1.0, wz * 0.22));
         vec3 V = normalize(cameraPosition - vW);
         float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
         vec3 col = mix(uShallow, uDeep, smoothstep(0.2, 7.0, depth));
         col = mix(col, uSky, fres * 0.65);
         // sun glints
         vec3 H = normalize(uSunDir + V);
-        float spec = pow(max(dot(N, H), 0.0), 220.0);
-        col += uSunColor * spec * 1.6;
+        float spec = pow(max(dot(N, H), 0.0), 120.0);
+        col += uSunColor * spec * 0.9;
         // shoreline foam
         float foam = (1.0 - smoothstep(0.0, 0.55, depth)) * (0.55 + 0.45 * sin(uTime * 1.4 + depth * 14.0 + n1 * 4.0));
         col = mix(col, vec3(1.0, 0.99, 0.96) * mix(1.0, 0.35, uNight), clamp(foam, 0.0, 1.0) * 0.75);

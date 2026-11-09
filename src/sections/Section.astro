@@ -1,7 +1,7 @@
 ---
 import type { SectionConfig } from '../config/schema';
-interface Props { section: SectionConfig; class?: string; flush?: boolean; defaultTheme?: 'light' | 'alt' | 'dark' | 'accent'; label?: string }
-const { section, class: cls, flush = false, defaultTheme = 'light', label } = Astro.props;
+interface Props { section: SectionConfig; class?: string; flush?: boolean; defaultTheme?: 'light' | 'alt' | 'dark' | 'accent'; label?: string; [attr: string]: unknown }
+const { section, class: cls, flush = false, defaultTheme = 'light', label, ...rest } = Astro.props;
 ---
 <section
   id={section.id ?? section.type}
@@ -11,6 +11,7 @@ const { section, class: cls, flush = false, defaultTheme = 'light', label } = As
   data-section={section.type}
   data-variant={section.variant}
   aria-label={label}
+  {...rest}
 >
   <slot />
 </section>

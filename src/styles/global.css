@@ -14,6 +14,7 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 a { color: inherit; text-decoration: none; }
 h1, h2, h3, h4, p, figure, blockquote, ul, ol, dl, dd { margin: 0; padding: 0; }
 ul[role='list'], ol[role='list'] { list-style: none; }
+[hidden] { display: none !important; }
 :focus-visible { outline: 2px solid var(--c-accent); outline-offset: 3px; }
 
 :root {
@@ -255,3 +256,9 @@ html[data-transition='none'] ::view-transition-group(*), html[data-transition='n
 }
 html { scroll-behavior: smooth; }
 html[data-motion='none'] { scroll-behavior: auto; }
+
+/* Asset capture mode (scripts/generate-renders.mjs) */
+html.capture :is(.hdr, .dock, .wm__ui, .wm__places, .wm__hotspots, .wm__hint, .wm__panel, .ftr) { display: none !important; }
+html.capture body::after { display: none; }
+html.capture .wm__canvas { opacity: 1 !important; transition: none !important; }
+html.capture .wm__fallback { display: none !important; }

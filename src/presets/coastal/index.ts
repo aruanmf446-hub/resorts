@@ -113,9 +113,9 @@ const config: ResortConfigInput = {
     seed: 11,
     terrain: { kind: 'island', height: 13, contours: true, colors: { low: '#c7b48c', mid: '#6f8b5e', high: '#3f5d43', shore: '#e9dcc0', peak: '#7b8a6a' } },
     water: { kind: 'ocean', level: 0, shallow: '#5fc4bf', deep: '#0f4c5a' },
-    vegetation: { kind: 'palm', density: 1, colors: { summer: '#3e6b45' } },
+    vegetation: { kind: 'palm', density: 0.75, colors: { summer: '#4f7d4f' } },
     architecture: { color: '#f3eee4', accent: '#a07a56', windowGlow: '#ffc883' },
-    atmosphere: { times: ['day', 'dusk', 'night'], defaultTime: 'dusk', seasons: [], fog: 0.3, clouds: true, particles: 'fireflies' },
+    atmosphere: { times: ['day', 'dusk', 'night'], defaultTime: 'day', seasons: [], fog: 0.3, clouds: true, particles: 'fireflies' },
     camera: { position: [62, 44, 66], target: [0, 2, 4], introFrom: [150, 110, 190], minDistance: 20, maxDistance: 150 },
     fallback: { src: '/media/coastal/map-illustrated.webp', alt: 'Illustrated map of Ondara island', width: 1600, height: 1600 },
     panorama: '/media/coastal/panorama.webp',
@@ -387,7 +387,7 @@ const config: ResortConfigInput = {
   },
 
   pois: [
-    { id: 'jetty', name: 'The Jetty', category: 'arrival', position: [6, 40], structure: { type: 'jetty', rotation: 0 }, summary: 'Where every stay begins — seaplanes and boats arrive here.', image: m('exp-sail', 'Arrival by sea'), link: 'page:location' },
+    { id: 'jetty', name: 'The Jetty', category: 'arrival', position: [7, 29], structure: { type: 'jetty', rotation: 0 }, summary: 'Where every stay begins — seaplanes and boats arrive here.', image: m('exp-sail', 'Arrival by sea'), link: 'page:location' },
     { id: 'cliff-villas', name: 'Cliff Villas', category: 'stay', position: [-24, -10], structure: { type: 'villa', count: 4, spread: 7, rotation: -0.6 }, summary: 'Four villas set into the western cliffs, facing the sunset.', image: m('villa-cliff', 'Cliff Villa interior'), link: 'stay:cliff-villa' },
     { id: 'lagoon-villas', name: 'Lagoon Residences', category: 'stay', position: [38, 2], structure: { type: 'overwater', count: 6, spread: 6, rotation: 0.3 }, summary: 'Overwater residences above the eastern lagoon.', image: m('villa-overwater', 'Lagoon Residence deck'), link: 'stay:lagoon-residence' },
     { id: 'pool-villa', name: 'Infinity Pool Villa', category: 'stay', position: [20, -16], structure: { type: 'villa', count: 1, size: 1.4, rotation: 0.6 }, summary: 'Two pavilions and an 18-metre pool above the lagoon.', image: m('villa-lagoon', 'Infinity pool'), link: 'stay:pool-villa' },

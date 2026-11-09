@@ -3,7 +3,7 @@ import { site, t, navItems, bookingEnabled, bookingHref } from '../lib/context';
 import Sound from './Sound.astro';
 interface Props { pageId?: string }
 const { pageId } = Astro.props;
-const items = navItems('primary').slice(0, 5);
+const items = navItems('primary').slice(0, 4);
 const style = site.theme.nav.style;
 const half = Math.ceil(items.length / 2);
 const reserve = bookingEnabled ? bookingHref : null;
@@ -86,7 +86,7 @@ const reserve = bookingEnabled ? bookingHref : null;
   :global(html[data-buttons='solid']) .hdr__book { background: var(--c-accent); color: var(--c-accent-ink); border-color: var(--c-accent); }
 
   .dock { display: none; }
-  @media (max-width: 960px) {
+  @media (max-width: 1240px) {
     .hdr__links { display: none !important; }
     :global(html[data-nav='split']) .hdr__bar { grid-template-columns: 1fr auto; }
     :global(html[data-nav='split']) .hdr__brand { grid-column: 1; justify-self: start; }
