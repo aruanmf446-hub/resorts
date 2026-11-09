@@ -1,12 +1,20 @@
 ---
+import { withBase } from '../lib/base';
 import { site } from '../lib/context';
 interface Props { title?: string; description?: string; image?: string; jsonLd?: Record<string, unknown>[]; noindex?: boolean }
 const { title, description, image, jsonLd = [], noindex } = Astro.props;
 const s = site.seo;
-const fullTitle = title ? s.titleTemplate.replace('%s', title) : s.defaultTitle;
-const desc = description ?? site.identity.description;
+const fullTitle = (title ? s.titleTemplate.replace('%s', title) : s.defaultTitle).replace(/\*/g, '').replace(/\|/g, ' ');
+const sourceDescription = description ?? site.identity.description;
+// Detail pages use short editorial summaries; the brand description supplies context.
+const extendedDescription = sourceDescription.length < 120
+  ? `${sourceDescription} ${site.identity.description}`
+  : sourceDescription;
+const desc = extendedDescription.length > 160
+  ? extendedDescription.slice(0, 157).replace(/\s+\S*$/, '').replace(/[.,;:]$/, '') + '.'
+  : extendedDescription;
 const canonical = new URL(Astro.url.pathname, s.siteUrl).toString();
-const og = new URL(image ?? s.ogImage, s.siteUrl).toString();
+const og = new URL(withBase(image ?? s.ogImage), s.siteUrl).toString();
 const loc = site.identity.location;
 const org = {
   '@context': 'https://schema.org',
@@ -14,7 +22,7 @@ const org = {
   name: site.identity.name,
   description: site.identity.description,
   url: s.siteUrl,
-  image: new URL(s.ogImage, s.siteUrl).toString(),
+  image: new URL(withBase(s.ogImage), s.siteUrl).toString(),
   ...(site.contacts.email && { email: site.contacts.email }),
   ...(site.contacts.phone && { telephone: site.contacts.phone }),
   ...(s.priceRange && { priceRange: s.priceRange }),
@@ -22,7 +30,7 @@ const org = {
   ...(loc.coordinates && { geo: { '@type': 'GeoCoordinates', latitude: loc.coordinates.lat, longitude: loc.coordinates.lng } }),
   sameAs: site.contacts.social.map((x) => x.href),
 };
-const schemas = [...(Astro.url.pathname === '/' ? [org] : []), ...jsonLd];
+const schemas = [...(Astro.url.pathname === withBase('/') ? [org] : []), ...jsonLd];
 const robots = noindex || s.robots === 'noindex' ? 'noindex,nofollow' : 'index,follow';
 ---
 <title>{fullTitle}</title>
@@ -30,7 +38,7 @@ const robots = noindex || s.robots === 'noindex' ? 'noindex,nofollow' : 'index,f
 <meta name="robots" content={robots} />
 <link rel="canonical" href={canonical} />
 <link rel="icon" href={site.identity.favicon} type="image/svg+xml" />
-<link rel="sitemap" href="/sitemap-index.xml" />
+<link rel="sitemap" href={withBase('/sitemap-index.xml')} />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content={site.identity.name} />
 <meta property="og:title" content={fullTitle} />

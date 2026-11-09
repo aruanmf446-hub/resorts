@@ -2,7 +2,7 @@
   "name": "the-world-beyond",
   "version": "1.0.0",
   "private": true,
-  "description": "THE WORLD BEYOND \u2014 Resort Experience 2026. White-label immersive resort website template (Astro + Three.js + GSAP).",
+  "description": "THE WORLD BEYOND — Resort Experience 2026. White-label immersive resort website template (Astro + Three.js + GSAP).",
   "type": "module",
   "scripts": {
     "dev": "astro dev",
@@ -21,7 +21,9 @@
     "test": "npm run test:unit && npm run build:all && npm run test:e2e",
     "assets:art": "node scripts/generate-art.mjs",
     "assets:renders": "node scripts/generate-renders.mjs",
-    "assets:glb": "node scripts/generate-glb.mjs"
+    "assets:glb": "node scripts/generate-glb.mjs",
+    "build:pages": "node scripts/build-pages.mjs",
+    "test:pages": "node tests/pages.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -40,6 +42,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "@types/three": "^0.187.0",
+    "playwright": "^1.65.0",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   },

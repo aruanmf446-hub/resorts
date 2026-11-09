@@ -29,8 +29,17 @@ const intensityOf = (el: Element): Intensity => {
   return v && v !== 'auto' ? (v as Intensity) : globalIntensity;
 };
 
-const EASE = 'expo.out';
+const EASE = 'power2.out';
 const show = (el: Element) => el.classList.add('is-revealed');
+function failOpen() {
+  ScrollTrigger.getAll().forEach((trigger) => trigger.kill(true));
+  root.classList.remove('motion-ready');
+  document.querySelectorAll('[data-chapters]').forEach((el) => el.classList.remove('chapters--pinned'));
+  const targets = document.querySelectorAll('[data-reveal], [data-reveal] *, [data-chapter-media], [data-chapter-text]');
+  gsap.killTweensOf(targets);
+  gsap.set(targets, { clearProps: 'opacity,visibility,transform,clipPath,filter' });
+}
+
 
 function reveal(el: HTMLElement) {
   const kind = el.dataset.reveal;
@@ -59,7 +68,7 @@ function reveal(el: HTMLElement) {
           },
         });
         void split;
-      });
+      }).catch(failOpen);
       break;
     }
     case 'words': {
@@ -72,16 +81,16 @@ function reveal(el: HTMLElement) {
     case 'mask': {
       const img = el.querySelector('img, video, canvas');
       gsap.set(el, { clipPath: 'inset(0 0 100% 0)' });
-      if (img) gsap.set(img, { scale: 1 + 0.18 * k });
+      if (img) gsap.set(img, { scale: 1 + 0.06 * k });
       show(el);
       run(() => {
-        gsap.to(el, { clipPath: 'inset(0 0 0% 0)', duration: 1.6 * k + 0.3, ease: 'expo.inOut', delay });
-        if (img) gsap.to(img, { scale: 1, duration: 2.2 * k + 0.4, ease: 'expo.out', delay });
+        gsap.to(el, { clipPath: 'inset(0 0 0% 0)', duration: 1.6 * k + 0.3, ease: 'power2.inOut', delay });
+        if (img) gsap.to(img, { scale: 1, duration: 2.2 * k + 0.4, ease: 'power2.out', delay });
       });
       break;
     }
     case 'rise': {
-      gsap.set(el, { y: 60 * k, opacity: 0 });
+      gsap.set(el, { y: 28 * k, opacity: 0 });
       show(el);
       run(() => gsap.to(el, { y: 0, opacity: 1, duration: 1.4, ease: EASE, delay }));
       break;
@@ -113,7 +122,7 @@ function parallax(el: HTMLElement) {
 function scrubWords(el: HTMLElement) {
   if (intensityOf(el) === 'none') return;
   const split = SplitText.create(el, { type: 'words' });
-  gsap.set(split.words, { opacity: 0.16 });
+  gsap.set(split.words, { opacity: 0.45 });
   gsap.to(split.words, {
     opacity: 1, ease: 'none', stagger: 0.1,
     scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 45%', scrub: 0.6 },
@@ -129,17 +138,17 @@ function chapters(el: HTMLElement) {
     return;
   }
   el.classList.add('chapters--pinned');
-  gsap.set(panes.slice(1), { clipPath: 'inset(100% 0 0 0)' });
-  gsap.set(texts.slice(1), { opacity: 0, y: 40 });
+  gsap.set(panes.slice(1), { opacity: 0 });
+  gsap.set(texts.slice(1), { opacity: 0, y: 18 });
   const tl = gsap.timeline({
     defaults: { ease: 'none' },
     scrollTrigger: { trigger: el, start: 'top top', end: () => `+=${window.innerHeight * (panes.length - 0.3)}`, scrub: 0.8, pin: el.querySelector('[data-chapter-stage]') as HTMLElement, anticipatePin: 1 },
   });
   panes.forEach((p, i) => {
     if (i === 0) return;
-    tl.to(texts[i - 1], { opacity: 0, y: -40, duration: 0.4 }, i - 0.6)
-      .to(p, { clipPath: 'inset(0% 0 0 0)', duration: 1 }, i - 1)
-      .fromTo(p.querySelector('img'), { scale: 1.2 }, { scale: 1, duration: 1.2 }, i - 1)
+    tl.to(texts[i - 1], { opacity: 0, y: -18, duration: 0.4 }, i - 0.6)
+      .to(p, { opacity: 1, duration: 0.8, ease: 'power1.inOut' }, i - 1)
+      .fromTo(p.querySelector('img'), { scale: 1.06 }, { scale: 1, duration: 1.2 }, i - 1)
       .to(texts[i], { opacity: 1, y: 0, duration: 0.4 }, i - 0.35);
   });
   if (progress) tl.fromTo(progress, { scaleX: 0 }, { scaleX: 1, duration: panes.length - 1, ease: 'none' }, 0);
@@ -186,7 +195,7 @@ if (globalIntensity === 'none') {
   root.classList.remove('motion-ready');
   (window as unknown as { __motion: boolean }).__motion = true;
 } else {
-  init();
+  try { init(); } catch { failOpen(); }
 }
 
 window.addEventListener('pagehide', () => ScrollTrigger.getAll().forEach((t) => t.kill()));

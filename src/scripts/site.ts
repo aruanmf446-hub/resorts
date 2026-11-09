@@ -7,12 +7,19 @@ const header = document.querySelector<HTMLElement>('[data-header]');
 
 /* Header: solid after the hero, hides while scrolling down, returns on scroll up. */
 let lastY = scrollY;
+let direction = 0;
+let travel = 0;
 const onScroll = () => {
-  const y = scrollY;
+  const y = Math.max(0, scrollY);
+  const delta = y - lastY;
+  const nextDirection = Math.sign(delta);
+  if (nextDirection && nextDirection !== direction) travel = 0;
+  if (nextDirection) direction = nextDirection;
+  travel += Math.abs(delta);
   const threshold = html.dataset.overlay === 'true' ? innerHeight * 0.75 : 24;
   header?.classList.toggle('is-solid', y > threshold);
-  header?.classList.toggle('is-hidden', y > 300 && y > lastY + 4 && !html.classList.contains('menu-open'));
-  if (y < lastY - 4 || y < 300) header?.classList.remove('is-hidden');
+  if (y < 300 || html.classList.contains('menu-open')) header?.classList.remove('is-hidden');
+  else if (travel > (direction > 0 ? 48 : 24)) header?.classList.toggle('is-hidden', direction > 0);
   lastY = y;
 };
 addEventListener('scroll', onScroll, { passive: true });

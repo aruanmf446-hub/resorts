@@ -1,12 +1,13 @@
 ---
+import { withBase } from '../lib/base';
 import type { Image } from '../config/schema';
 interface Props { image: Image; class?: string; eager?: boolean; sizes?: string; [k: string]: unknown }
 const { image, class: cls, eager = false, sizes = '100vw', ...rest } = Astro.props;
 ---
 <picture>
-  {image.srcMobile && <source media="(max-width: 760px)" srcset={image.srcMobile} />}
+  {image.srcMobile && <source media="(max-width: 760px)" srcset={withBase(image.srcMobile)} />}
   <img
-    src={image.src}
+    src={withBase(image.src)}
     alt={image.alt}
     width={image.width}
     height={image.height}

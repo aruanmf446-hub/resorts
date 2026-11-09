@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../lib/base';
 import { site, t, navItems, bookingEnabled, bookingHref } from '../lib/context';
 import Sound from './Sound.astro';
 interface Props { pageId?: string }
@@ -15,7 +16,7 @@ const reserve = bookingEnabled ? bookingHref : null;
         {items.slice(0, half).map((i) => <a class="hdr__link" href={i.href} aria-current={i.id === pageId ? 'page' : undefined}>{i.label}</a>)}
       </nav>
     )}
-    <a class="hdr__brand" href="/" aria-label={`${site.identity.name} — ${t('home')}`}>
+    <a class="hdr__brand" href={withBase('/')} aria-label={`${site.identity.name} — ${t('home')}`}>
       {site.identity.logo ? <img src={site.identity.logo.src} alt={site.identity.logo.alt} height="28" /> : <span class="hdr__wordmark">{site.identity.wordmark}</span>}
     </a>
     {style !== 'split' && (
