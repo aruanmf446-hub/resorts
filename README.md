@@ -100,3 +100,38 @@ Key principles:
 | `npm run test:e2e` | Every page of every preset in Chromium: no console errors, no broken internal links, hotspots and 3D map, no-WebGL fallback, reduced motion, booking hand-off URL and date validation, planner, menu and keyboard, mobile layout, SEO tags, sitemap, absence of secrets in the bundle |
 
 See `docs/CUSTOMIZATION.md` for the full guide to creating a new resort.
+
+## Publicar no GitHub Pages
+
+No repositório, ative **Settings → Pages → Source: GitHub Actions**.
+O workflow `.github/workflows/pages.yml` publica em pushes para `main` ou pela
+execução manual (`workflow_dispatch`). Não requer segredos no repositório.
+
+```bash
+npm ci
+npm run build:pages
+npm run test:pages
+```
+
+O gerador reúne o portal, `404.html`, `.nojekyll` e os três builds em `dist/pages`:
+
+- https://aruanmf446-hub.github.io/resorts/
+- https://aruanmf446-hub.github.io/resorts/coastal/
+- https://aruanmf446-hub.github.io/resorts/mountain/
+- https://aruanmf446-hub.github.io/resorts/wellness/
+
+Cada build recebe `RESORT_PRESET`, `BASE_PATH=/resorts/<preset>/` e
+`SITE_URL=https://aruanmf446-hub.github.io/resorts/<preset>`. Os domínios `.example.com`
+originais continuam como padrão para builds sem `SITE_URL`. O helper `withBase()`
+resolve links; `resolveAssets()` prepara os caminhos locais do conteúdo validado
+antes de renderizar componentes ou serializar dados para os scripts do navegador.
+URLs externas, tokens e âncoras são preservados, e aplicar a base novamente é seguro.
+
+Para verificar manualmente, sirva uma pasta que contenha `resorts/` com o conteúdo de
+`dist/pages` dentro dela, e abra `/resorts/`. O teste `test:pages` faz esse mapeamento
+localmente. Após o merge, confirme que a fonte do Pages está em **GitHub Actions**
+e acompanhe a execução do workflow. Todos os demos mantêm os avisos de conteúdo fictício.
+
+Os testes de navegador usam Playwright (dependência de desenvolvimento). Em uma
+máquina nova, execute `npx playwright install chromium` antes de `test:e2e` ou
+`test:pages` (no Linux, use `npx playwright install --with-deps chromium` se necessário).
